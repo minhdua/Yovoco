@@ -1,0 +1,15 @@
+{
+    "cSpell.words": [
+        "djongo",
+        "exemp",
+        "mdpassw",
+        "minhdua",
+        "myenglish",
+        "NOSQL",
+        "simplejwt",
+        "yovoco"
+    ],
+    "python.analysis.extraPaths": [
+        "./yovoco/venv/Lib/site-packages"
+    ]
+}

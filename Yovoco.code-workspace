@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"Yovoco"
+		],
+		"java.configuration.updateBuildConfiguration": "automatic",
+		"java.format.settings.url": "Yovoco/.vscode/java-formatter.xml"
+	}
+}
