@@ -13,7 +13,6 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 from collections import OrderedDict
 from datetime import datetime
 from rest_framework import status
-from uuid import uuid4
 
 INVALID_KEY = 'Invalid key'
 

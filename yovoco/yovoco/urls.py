@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path(settings.BASE_URL, include('entities.urls'),name='entities'),
     path(settings.BASE_URL+"user/", include('users.urls'),name='user'),
+    path(settings.BASE_URL+"study/", include('study.urls'),name='study'),
 ]

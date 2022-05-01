@@ -38,19 +38,22 @@ class CustomModelViewSet(ModelViewSet):
         response.data = {'detail': 'Success', 
                          'status_code': status.HTTP_200_OK,
                          'results': data}
-        print('response:', response.data)
         return response
     
     def create(self, request, *args, **kwargs):
         response = super(CustomModelViewSet, self).create(request, *args, **kwargs)
-        response.data.update({'detail': 'Success', 'status_code': status.HTTP_201_CREATED})
-        print('response:', response.data)
+        data = deepcopy(response.data)
+        response.data = {'detail': 'Success', 
+                         'status_code': status.HTTP_200_OK,
+                         'results': data}
         return response
     
     def update(self, request, *args, **kwargs):
         response = super(CustomModelViewSet, self).update(request, *args, **kwargs)
-        response.data.update({'detail': 'Success', 'status_code': status.HTTP_200_OK})
-        print('response:', response.data)
+        data = deepcopy(response.data)
+        response.data = {'detail': 'Success', 
+                         'status_code': status.HTTP_200_OK,
+                         'results': data}
         return response
 
 class CollectionViewSet(CustomModelViewSet):

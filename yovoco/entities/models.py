@@ -1,11 +1,9 @@
-
 from django.db import models
 from datetime import date
 from users.models import CustomUser
-from djongo import models as djmodels
 
 def now_to_string():
-    return date.today().strftime('%Y-%m-%d')
+    return date.today().strftime('%Y%m%d')
 
 class AuditModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -94,6 +92,3 @@ class Vocabulary( AuditModel):
     language = models.CharField(max_length=20, choices=Language.choices, default=Language.ENGLISH)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='vocabulary', blank=True, null=True)
     pos_extend = models.CharField(max_length=1000, blank=True, null=True)
-    
-    def __str__(self):
-        return self.word + ': ' + self.meaning + ': ' + self.example + ': ' + self.phonetic + ': ' + self.audio.name + ': ' + self.pos.name
