@@ -18,7 +18,7 @@ from django.urls import path,include
 from django.conf import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path(settings.BASE_URL + 'app/',include('yvcApp.urls')),
-    path(settings.BASE_URL, include('users.urls')),
+    path('admin/', admin.site.urls, name='admin'),
+    path(settings.BASE_URL, include('entities.urls'),name='entities'),
+    path(settings.BASE_URL+"user/", include('users.urls'),name='user'),
 ]

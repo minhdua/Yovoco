@@ -36,6 +36,9 @@ SERVER_HOST = str(os.environ.get('SERVER_HOST')) + ':' + str(os.environ.get('SER
 API_VERSION = 'v1'
 BASE_URL = 'api/'+API_VERSION + '/'
 # Application definition
+
+APPEND_SLASH=False
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,14 +49,17 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'yvcApp',
     'users',
+    'entities',
+    'django_filters',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',),
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     'EXCEPTION_HANDLER': 'users.exception_handler.custom_exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10,
 }
 
 AUTH_USER_MODEL = 'users.CustomUser'

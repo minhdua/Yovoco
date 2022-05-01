@@ -14,6 +14,8 @@ class Verification:
     
 
 class CustomUser(AbstractUser):
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     mobile_number = models.CharField(max_length=10, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     verified_email = PickledObjectField(default=dict)

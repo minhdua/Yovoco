@@ -15,16 +15,8 @@ from users.serializers import (ProfileSerializer,
                                     LogoutSerializer,
                                     RefreshTokenSerializer,)
 from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import CustomUser
-from users.tokens import get_verifytoken_for_user
-from users.utils import send_email, encrypt_message, decrypt_message
-from users.response import ResultResponse
-from users.exceptions import AccessDenied
 from rest_framework import exceptions
 from django.views.decorators.csrf import csrf_exempt
-
 import copy
 
 @api_view(['POST'])
@@ -66,7 +58,6 @@ def reverify_verification_mail(request):
 @csrf_exempt
 def login(request):
     serializer = LoginSerializer(data=request.data)
-    print('data', request.data)
     if serializer.is_valid():
         response = serializer.validated_data
         return Response(response, status=status.HTTP_200_OK)
@@ -83,7 +74,7 @@ def profile(request):
         return Response(response, status=status.HTTP_200_OK)
     raise exceptions.MethodNotAllowed(request.method)
 
-@api_view(['POST'])
+@api_view(['PUT'])
 def update_profile(request):
     user = request.user
     serializer = ProfileUpdateSerializer(user, data=request.data)
@@ -92,7 +83,7 @@ def update_profile(request):
         return Response(response, status=status.HTTP_200_OK)
     return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+@api_view(['PUT'])
 def change_password(request):
     user = request.user
     serializer = PasswordUpdateSerializer(user, data=request.data, context={'request': request})
@@ -144,6 +135,7 @@ def logout_everywhere(request):
     return Response(response, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def refresh(request):
     serializer = RefreshTokenSerializer(data=request.data)
     if serializer.is_valid():

@@ -44,7 +44,7 @@ def get_body_verification_mail(username, hostname, key):
     Thank you for registering with us.
     Please click on the link below to verify your email address.
 
-    http://{hostname}/auth/verify-mail/?key={key}
+    http://{hostname}/api/v1/verify-email?key={key}
 
     Regards,
     Team Yovoco
@@ -317,7 +317,7 @@ class ProfileUpdateSerializer(NonNullModelSerializer):
 
     def update(self, instance, validated_data):
         instance.email = validated_data.get('email', instance.email)
-        instance.ava = validated_data.get('avartar', instance.avartar)
+        instance.avartar = validated_data.get('avartar', instance.avartar)
         instance.mobile_number = validated_data.get('mobile_number', instance.mobile_number)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
@@ -329,7 +329,7 @@ class ProfileUpdateSerializer(NonNullModelSerializer):
         instance.last_updated = datetime.now()
         instance.save()
         return ResultResponse(detail='You have successfully updated your profile.',
-        status_code=status.HTTP_200_OK, data=ProfileSerializer(instance).data).get_response
+        status_code=status.HTTP_200_OK, data=ProfileUpdateSerializer(instance).data).get_response
 
 class PasswordUpdateSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)

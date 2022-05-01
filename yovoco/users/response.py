@@ -12,5 +12,5 @@ class ResultResponse:
         return {
             'detail': self.detail,
             'status_code': self.status_code,
-            'data': self.data
+            'results': self.data
        }

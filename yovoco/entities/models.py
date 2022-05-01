@@ -1,6 +1,8 @@
 
 from django.db import models
 from datetime import date
+from users.models import CustomUser
+from djongo import models as djmodels
 
 def now_to_string():
     return date.today().strftime('%Y-%m-%d')
@@ -8,38 +10,23 @@ def now_to_string():
 class AuditModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.CharField(max_length=100, blank=True, null=True)
-    updated_by = models.CharField(max_length=100, blank=True, null=True)
-    is_deleted = models.BooleanField(default=False)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_created_by')
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_updated_by')
     deleted_at = models.DateTimeField(blank=True, null=True)
-    deleted_by = models.CharField(max_length=100, blank=True, null=True)
+    deleted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_deleted_by')
 
     class Meta:
         abstract = True
-
-class Word( AuditModel):
-    """
-    Word
-    """
-    name = models.CharField(max_length=1000, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-
+        
 class Collection( AuditModel):
     """
     Collection
     """
-
-    name = models.CharField(max_length=50, unique=True, default = now_to_string())
+    name = models.CharField(max_length=50, default = now_to_string())
     description = models.CharField(max_length=200, blank=True, null=True)
     image = models.FileField(upload_to='image/', blank=True, null=True)
 
-    def __str__(self):
-        return self.name + ': ' + self.description
-
+        
 
 class Language(models.TextChoices):
     """
@@ -81,63 +68,32 @@ class Language(models.TextChoices):
     WELSH = 'cy', 'Welsh'
 
 class PartOfSpeech(models.TextChoices):
-    NOUN = 'NOUN', 'Noun'
-    VERB = 'VERB', 'Verb'
-    ADJ = 'ADJ', 'Adjective'
-    ADV = 'ADV', 'Adverb'
-    PRON = 'PRON', 'Pronoun'
-    CONJ = 'CONJ', 'Conjunction'
-    DET = 'DET', 'Determiner'
-    PREP = 'PREP', 'Preposition'
-    NUM = 'NUM', 'Numeral'
-    INTERJ = 'INTERJ', 'Interjection'
-    PRT = 'PRT', 'Particle'
-    X = 'X', 'Other'
+    NOUN = 'noun'
+    VERB = 'verb'
+    ADJ =  'adjective'
+    ADV =  'adverb'
+    PRON = 'pronoun'
+    CONJ = 'conjunction'
+    DET = 'determiner'
+    PREP = 'preposition'
+    NUM = 'numeral'
+    INTERJ = 'interjection'
+    PRT = 'particle'
+    X = 'other'
 
 class Vocabulary( AuditModel):
     """
     Vocabulary
     """
-
-    word = models.ForeignKey(Word,related_name= 'word', on_delete=models.CASCADE)
-    meaning = models.CharField(max_length=100)
-    example = models.CharField(max_length=200)
-    phonetic = models.CharField(max_length=100)
-    audio = models.FileField(upload_to='audio/')
+    word = models.CharField(max_length=255)
+    meaning = models.CharField(max_length=100, blank=True, null=True)
+    example = models.CharField(max_length=2000, blank=True, null=True)
+    phonetic = models.CharField(max_length=1000, blank=True, null=True)
+    audio = models.CharField(max_length=1000, blank=True, null=True)
     pos = models.CharField(max_length=50, choices=PartOfSpeech.choices, default=PartOfSpeech.NOUN)
-    collection = models.ManyToManyField(Collection, related_name='vocabulary')
     language = models.CharField(max_length=20, choices=Language.choices, default=Language.ENGLISH)
-
-    class Meta:
-        unique_together = ('word', 'phonetic', 'pos')
-
-
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='vocabulary', blank=True, null=True)
+    pos_extend = models.CharField(max_length=1000, blank=True, null=True)
+    
     def __str__(self):
         return self.word + ': ' + self.meaning + ': ' + self.example + ': ' + self.phonetic + ': ' + self.audio.name + ': ' + self.pos.name
-
-
-class VocabularyCollection( AuditModel):
-    """
-    Vocabulary Collection
-    """
-
-    collection = models.ForeignKey(Collection, on_delete=models.CASCADE )
-    vocabulary = models.ForeignKey(Vocabulary, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('collection', 'vocabulary')
-
-
-class Typing( AuditModel):
-    """
-    Typing
-    """
-
-    word = models.ForeignKey(Word, on_delete=models.CASCADE)
-    typingCount = models.IntegerField(default=0)
-
-    def __str__(self):
-        return self.word + ': ' + str(self.typingCount)
-
-
-
