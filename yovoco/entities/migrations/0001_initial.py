@@ -2,50 +2,48 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-
-
 class Migration(migrations.Migration):
 
-    initial = True
+	initial = True
 
-    dependencies = [
-    ]
-
-    operations = [
-        migrations.CreateModel(
-            name='Collection',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('deleted_at', models.DateTimeField(blank=True, null=True)),
-                ('name', models.CharField(default='20220501', max_length=50)),
-                ('description', models.CharField(blank=True, max_length=200, null=True)),
-                ('image', models.FileField(blank=True, null=True, upload_to='image/')),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='Vocabulary',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('deleted_at', models.DateTimeField(blank=True, null=True)),
-                ('word', models.CharField(max_length=255)),
-                ('meaning', models.CharField(blank=True, max_length=100, null=True)),
-                ('example', models.CharField(blank=True, max_length=2000, null=True)),
-                ('phonetic', models.CharField(blank=True, max_length=1000, null=True)),
-                ('audio', models.CharField(blank=True, max_length=1000, null=True)),
-                ('pos', models.CharField(choices=[('noun', 'Noun'), ('verb', 'Verb'), ('adjective', 'Adj'), ('adverb', 'Adv'), ('pronoun', 'Pron'), ('conjunction', 'Conj'), ('determiner', 'Det'), ('preposition', 'Prep'), ('numeral', 'Num'), ('interjection', 'Interj'), ('particle', 'Prt'), ('other', 'X')], default='noun', max_length=50)),
-                ('language', models.CharField(choices=[('en', 'English'), ('vi', 'Vietnamese'), ('ja', 'Japanese'), ('ko', 'Korean'), ('zh', 'Chinese'), ('fr', 'French'), ('es', 'Spanish'), ('de', 'German'), ('it', 'Italian'), ('ru', 'Russian'), ('pt', 'Portuguese'), ('ar', 'Arabic'), ('bg', 'Bulgarian'), ('cs', 'Czech'), ('da', 'Danish'), ('nl', 'Dutch'), ('fi', 'Finnish'), ('el', 'Greek'), ('hu', 'Hungarian'), ('is', 'Icelandic'), ('id', 'Indonesian'), ('ga', 'Irish'), ('lv', 'Latvian'), ('lt', 'Lithuanian'), ('no', 'Norwegian'), ('pl', 'Polish'), ('pt-br', 'Portuguese (Brazil)'), ('ro', 'Romanian'), ('sk', 'Slovak'), ('sl', 'Slovenian'), ('sv', 'Swedish'), ('tr', 'Turkish'), ('uk', 'Ukrainian'), ('cy', 'Welsh')], default='en', max_length=20)),
-                ('pos_extend', models.CharField(blank=True, max_length=1000, null=True)),
-                ('collection', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='vocabulary', to='entities.collection')),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-    ]
+	dependencies = [
+	]
+ 
+	operations = [
+		migrations.CreateModel(
+			name='Collection',
+			fields=[
+				('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+				('created_at', models.DateTimeField(auto_now_add=True)),
+				('updated_at', models.DateTimeField(auto_now=True)),
+				('deleted_at', models.DateTimeField(blank=True, null=True)),
+				('name', models.CharField(default='20220501', max_length=50)),
+				('description', models.CharField(blank=True, max_length=200, null=True)),
+				('image', models.FileField(blank=True, null=True, upload_to='image/')),
+			],
+			options={
+				'abstract': False,
+			},
+		),
+		migrations.CreateModel(
+			name='Vocabulary',
+			fields=[
+				('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+				('created_at', models.DateTimeField(auto_now_add=True)),
+				('updated_at', models.DateTimeField(auto_now=True)),
+				('deleted_at', models.DateTimeField(blank=True, null=True)),
+				('word', models.CharField(max_length=255)),
+				('meaning', models.CharField(blank=True, max_length=100, null=True)),
+				('example', models.CharField(blank=True, max_length=2000, null=True)),
+				('phonetic', models.CharField(blank=True, max_length=1000, null=True)),
+				('audio', models.CharField(blank=True, max_length=1000, null=True)),
+				('pos', models.CharField(choices=[('noun', 'Noun'), ('verb', 'Verb'), ('adjective', 'Adj'), ('adverb', 'Adv'), ('pronoun', 'Pron'), ('conjunction', 'Conj'), ('determiner', 'Det'), ('preposition', 'Prep'), ('numeral', 'Num'), ('interjection', 'Interj'), ('particle', 'Prt'), ('other', 'X')], default='noun', max_length=50)),
+				('language', models.CharField(choices=[('en', 'English'), ('vi', 'Vietnamese'), ('ja', 'Japanese'), ('ko', 'Korean'), ('zh', 'Chinese'), ('fr', 'French'), ('es', 'Spanish'), ('de', 'German'), ('it', 'Italian'), ('ru', 'Russian'), ('pt', 'Portuguese'), ('ar', 'Arabic'), ('bg', 'Bulgarian'), ('cs', 'Czech'), ('da', 'Danish'), ('nl', 'Dutch'), ('fi', 'Finnish'), ('el', 'Greek'), ('hu', 'Hungarian'), ('is', 'Icelandic'), ('id', 'Indonesian'), ('ga', 'Irish'), ('lv', 'Latvian'), ('lt', 'Lithuanian'), ('no', 'Norwegian'), ('pl', 'Polish'), ('pt-br', 'Portuguese (Brazil)'), ('ro', 'Romanian'), ('sk', 'Slovak'), ('sl', 'Slovenian'), ('sv', 'Swedish'), ('tr', 'Turkish'), ('uk', 'Ukrainian'), ('cy', 'Welsh')], default='en', max_length=20)),
+				('pos_extend', models.CharField(blank=True, max_length=1000, null=True)),
+				('collection', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='vocabulary', to='entities.collection')),
+			],
+			options={
+				'abstract': False,
+			},
+		),
+	]
