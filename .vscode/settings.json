@@ -8,9 +8,5 @@
         "NOSQL",
         "simplejwt",
         "yovoco"
-    ],
-    "python.analysis.extraPaths": [
-        "./yovoco/venv/Lib/site-packages"
-    ],
-    "java.checkstyle.configuration": "/google_checks.xml"
+    ]
 }

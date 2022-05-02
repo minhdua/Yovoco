@@ -1,36 +1,37 @@
-from django.conf import settings
-from django.db import transaction
-from rest_framework import serializers
-from users.models import CustomUser
-from django.contrib.auth import authenticate
-from users.tokens import (get_verifytoken_for_user, 
-							get_token_for_user, 
-							get_reset_password_token_for_user,)
-from users.utils import encrypt_message,decrypt_message ,send_email
-from users.response import ResultResponse
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from collections import OrderedDict
 from datetime import datetime
-from rest_framework import status
+from sqlite3 import paramstyle
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django.db import transaction
+from rest_framework import serializers, status
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
+import re
+from users import models, response, tokens , utils
+from yovoco.constants import *
 
-INVALID_KEY='Invalid key'
+
 
 def validate_password(value):
-	if len(value) < 8:
-		raise serializers.ValidationError({'detail': 'Password must be at least 8 characters long'})
-	if len(value) > 20:
-		raise serializers.ValidationError({'detail': 'Password must be at most 20 characters long'})
+	if len(value) < VALUE_VALIDATION_PASSWORD_MIN_LENGTH:
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_LEAST_CHARACTER)
+	if len(value) > VALUE_VALIDATION_PASSWORD_MAX_LENGTH:
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_MOST_CHARACTER)
 	if not any(char.isdigit() for char in value):
-		raise serializers.ValidationError({'detail': 'Password must contain at least one digit'})
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_DIGIT)
 	if not any(char.isupper() for char in value):
-		raise serializers.ValidationError({'detail': 'Password must contain at least one uppercase letter'})
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_UPPERCASE)
+	if not any(char.islower() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_LOWERCASE)
+	if any(not char.isalnum() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_CONTAIN_SPECIAL_CHARACTER)
 	return value
 
 def check_email_exists(email):
-	users=CustomUser.objects.filter(email=email)
+	users=models.CustomUser.objects.filter(email=email)
 	for user in users:
-		if user.verified_email.get('is_verified',False):
+		if user.verified_email.get(KEY_IS_VERIFIED,False):
 			return True
 	return False
 
@@ -43,19 +44,19 @@ def get_body_verification_mail(username, hostname, key):
 	Thank you for registering with us.
 	Please click on the link below to verify your email address.
 
-	http://{hostname}/api/v1/user/verify-email/?key={key}
+	http://{hostname}/api/v1/user/verify_email/?key={key}
 
 	Regards,
 	Team Yovoco
 	'''
 
 def get_subject_verification_mail():
-	return 'Verify your email address to complete registration'
+	return VALUE_SUBJECT_VERIFICATION_EMAIL
 
 class NonNullModelSerializer(serializers.ModelSerializer):
 	def to_representation(self, instance):
 		result=super(NonNullModelSerializer, self).to_representation(instance)
-		return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
+		return OrderedDict([(key, result[key]) for key in result if result[key]])
 
 class ProfileSerializer(NonNullModelSerializer):
 	'''
@@ -63,14 +64,15 @@ class ProfileSerializer(NonNullModelSerializer):
 	Display user profile
 	'''
 	class Meta:
-		model=CustomUser
-		fields=('username', 'email', 'avartar', 'mobile_number','first_name', 'last_name', \
-   				'address', 'city', 'country', 'postal_code', 'birthday')
+		model=models.CustomUser
+		fields=(KEY_USERNAME, KEY_EMAIL, KEY_AVARTAR, KEY_MOBILE_NUMBER,\
+		KEY_FIRST_NAME, KEY_LAST_NAME, KEY_ADDRESS, KEY_CITY, KEY_COUNTRY,\
+		KEY_POSTAL_CODE, KEY_BIRTHDAY)
 		extra_kwargs={
-			'birthday': {'format': '%d-%m-%Y'},
+			KEY_BIRTHDAY: {KEY_FORMAT: VALUE_STRING_FORMAT_DATE},
 		}
 	def get(self):
-		return ResultResponse(detail='Get profile successfully', status_code=status.HTTP_200_OK,\
+		return response.ResultResponse(MESSAGE_GET_PROFILE_SUCCESS, status_code=status.HTTP_200_OK,\
    	data=self.data).get_response
 
 class RegistrationSerializer(NonNullModelSerializer):
@@ -79,53 +81,56 @@ class RegistrationSerializer(NonNullModelSerializer):
 	Register user and send verification email.
 	'''
 
-	password2=serializers.CharField(style={'input_type': 'password'}, write_only=True)
+	password2=serializers.CharField(style={KEY_INPUT_TYPE: VALUE_PASSWORD}, write_only=True)
 	token=serializers.CharField(read_only=True)
 	class Meta:
-		model=CustomUser
-		fields=['username', 'email', 'token', 'password', 'password2']
+		model=models.CustomUser
+		fields=[KEY_USERNAME, KEY_EMAIL, KEY_TOKEN, KEY_PASSWORD, KEY_PASSWORD2]
 		extra_kwargs={
-			'password': {'write_only': True}
+			KEY_USERNAME: {KEY_REQUIRED: True},
+			KEY_EMAIL: {KEY_REQUIRED: True},
+			KEY_PASSWORD: {KEY_REQUIRED: True},
+			KEY_PASSWORD2: {KEY_REQUIRED: True},
 		}
 
 	def validate_username(self, value):
 		'''
 		validate username. 
 		'''
-		if len(value) < 5:
-			raise serializers.ValidationError({'detail': 'Username must be at least 5 characters long.'})
-		if len(value) > 20:
-			raise serializers.ValidationError({'detail': 'Username cannot be more than 20 characters long.'})
+		if len(value) < VALUE_VALIDATION_USERNAME_MIN_LENGTH:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_LEAST_CHARACTER)
+		if len(value) > VALUE_VALIDATION_USERNAME_MAX_LENGTH:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_MOST_CHARACTER)
+		if not any (char.isdigit() for char in value) or not any (char.isalpha() for char in value):
+			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_CONTAIN_LETTER_AND_DIGIT)
 		if not value.isalnum():
-			raise serializers.ValidationError({'detail': 'Username can only contain letters and numbers.'})
-		if CustomUser.objects.filter(username=value).exists():
-			raise serializers.ValidationError({'detail': 'Username already exists.'})
+			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_NOT_CONTAIN_SPECIAL_CHARACTER)
+		if models.CustomUser.objects.filter(username=value).exists():
+			raise serializers.ValidationError(MESSAGE_USERNAME_EXIST)
 		return value
 
 	def validate_email(self, value):
 		'''
 		validate email.
 		'''
-		if len(value) < 5:
-			raise serializers.ValidationError({'detail': 'Email must be at least 5 characters long.'})
-		if len(value) > 100:
-			raise serializers.ValidationError({'detail': 'Email cannot be more than 100 characters long.'})
+		if len(value) < VALUE_VALIDATION_EMAIL_MIN_LENGTH:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_EMAIL_LEAST_CHARACTER)
+		if len(value) > VALUE_VALIDATION_EMAIL_MAX_LENGTH:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_EMAIL_MOST_CHARACTER)
+		if not re.fullmatch(VALUE_VALIDATION_REGEX_EMAIL, value):
+			raise serializers.ValidationError(MESSAGE_EMAIL_INVALID)
 		if check_email_exists(value):
-			raise serializers.ValidationError({'detail': 'Email already exists.'})
+			raise serializers.ValidationError(MESSAGE_EMAIL_EXIST)
 		return value
 
 	def validate_mobile_number(self, value):
 		'''
 		validate mobile number.
 		'''
-		if len(value) < 10:
-			raise serializers.ValidationError({'detail': 'Mobile number must be at least 10 characters long.'})
-		if len(value) > 10:
-			raise serializers.ValidationError({'detail': 'Mobile number cannot be more than 10 characters long.'})
-		if not value.isalpha():
-			raise serializers.ValidationError({'detail': 'Mobile number can only contain letters.'})
-		if CustomUser.objects.filter(mobile_number=value).exists():
-			raise serializers.ValidationError({'detail': 'Mobile number already exists.'})
+		if not re.fullmatch(VALUE_VALIDATION_MOBILENUMBER_REGEX, value):
+			raise serializers.ValidationError(MESSAGE_MOBILENUMBER_INVALID)
+		if models.CustomUser.objects.filter(mobile_number=value).exists():
+			raise serializers.ValidationError(MESSAGE_MOBILE_NUMBER_EXIST)
 		return value
 
 	def validate_password(self, value):
@@ -140,13 +145,13 @@ class RegistrationSerializer(NonNullModelSerializer):
 		save user. if password is valid and match, then save user, 
  		else return error. Then send verification email.
 		'''
-		email=self.validated_data.get('email', 'None')
-		username=self.validated_data.get('username', 'None')
-		user=CustomUser(email=email, username=username)
-		password=self.validated_data.get('password')
-		password2=self.validated_data.get('password2')
-		if self.validate_password(password) != password2:
-			raise serializers.ValidationError({'detail': 'Passwords must match.'})
+		email=self.validated_data.get(KEY_EMAIL)
+		username=self.validated_data.get(KEY_USERNAME)
+		user=models.CustomUser(email=email, username=username)
+		password=self.validated_data.get(KEY_PASSWORD)
+		password2=self.validated_data.get(KEY_PASSWORD2)
+		if password != password2:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_MATCH)
 		user.set_password(password)
 		user.save()
 		return self.send_verification_email(user)
@@ -157,11 +162,11 @@ class RegistrationSerializer(NonNullModelSerializer):
 		'''
 		subject=get_subject_verification_mail()
 		current_site=settings.SERVER_HOST
-		token=get_verifytoken_for_user(user).get('access')
-		key_encrypted=encrypt_message(token)
+		token=tokens.get_verifytoken_for_user(user).get(KEY_ACCESS)
+		key_encrypted=utils.encrypt_message(token)
 		mail_body=get_body_verification_mail(user.username, current_site, key_encrypted)
-		send_email(subject, mail_body, user.email)
-		data=ResultResponse(detail='Register Successfully. Please verify your email address.',
+		utils.send_email(subject, mail_body, user.email)
+		data=response.ResultResponse(MESSAGE_REGISTER_SUCCESS,
 		status_code=status.HTTP_201_CREATED, data=self.data)
 		return data.get_response
 
@@ -176,40 +181,40 @@ class VerifiedMailSerializer(serializers.Serializer):
 		validate key. raise error if key is invalid.
 		'''
 
-		key_decrypted=decrypt_message(value)
+		key_decrypted=utils.decrypt_message(value)
 		if not key_decrypted:
-			raise serializers.ValidationError({'detail':INVALID_KEY})
+			raise serializers.ValidationError(MESSAGE_INVALID_KEY)
 		return key_decrypted
 
 	def save(self):
 		'''
 		verify user email. raise error if verification fails.
 		'''
-		key=self.validated_data.get('key')
+		key=self.validated_data.get(KEY_KEY)
 		try:
 			payload=AccessToken(key).payload
-			user_id=payload.get('user_id')
-			verification_key=payload.get('verification_key')
-			email=payload.get('email')
-			token_type=payload.get('type')
+			user_id=payload.get(KEY_USER_ID)
+			verification_key=payload.get(KEY_VERIFICATION_KEY)
+			email=payload.get(KEY_EMAIL)
+			token_type=payload.get(KEY_TYPE)
 		except TokenError as e:
-			raise serializers.ValidationError({'detail':e})
-		if token_type != 'verify_email':
-			raise serializers.ValidationError({'detail': 'Invalid token type.'})
-		user=CustomUser.objects.get(id=user_id)
-		if user.verified_email.get('is_verified'):
-			raise serializers.ValidationError({'detail': 'Email already verified.'})
-		if user.verified_email.get('verification_key') != verification_key:
-			raise serializers.ValidationError({'detail': 'This access has been revoked.'})
-		if user.verified_email.get('verification_expiry') < datetime.now():
-			raise serializers.ValidationError({'detail': 'This link has expired.'})
-		user.verified_email['is_verified']=True
+			raise serializers.ValidationError({KEY_DETAIL:e})
+		if token_type != VALUE_VERIFY_EMAIL:
+			raise serializers.ValidationError(MESSAGE_TOKEN_TYPE_INVALID)
+		user=models.CustomUser.objects.get(id=user_id)
+		if user.verified_email.get(KEY_IS_VERIFIED):
+			raise serializers.ValidationError(MESSAGE_EMAIL_ALREADY_VERIFIED)
+		if user.verified_email.get(KEY_VERIFICATION_KEY) != verification_key:
+			raise serializers.ValidationError(MESSAGE_ACCESS_DENIED)
+		if user.verified_email.get(KEY_VERIFICATION_EXPIRY) < datetime.now():
+			raise serializers.ValidationError(MESSAGE_LINK_EXPIRED)
+		user.verified_email[KEY_IS_VERIFIED]=True
 		user.email=email
 		user.save()
-		return ResultResponse(detail='Email verified successfully.',
+		return response.ResultResponse(detail=MESSAGE_VERIFIED_SUCCESS,
 		status_code=status.HTTP_200_OK, data={
-			'username': user.username,
-			'email': user.email,
+			KEY_USERNAME: user.username,
+			KEY_EMAIL: user.email,
 		}).get_response
 
 class ReverifyMailSerializer(serializers.Serializer):
@@ -223,8 +228,8 @@ class ReverifyMailSerializer(serializers.Serializer):
 		'''
 		validate username. raise error if username is invalid.
 		'''
-		if not CustomUser.objects.filter(username=value).exists():
-			raise serializers.ValidationError({'detail': 'Username does not exist.'})
+		if not models.CustomUser.objects.filter(username=value).exists():
+			raise serializers.ValidationError(MESSAGE_USERNAME_NOT_EXISTS)
 		return value
 
 	def save(self):
@@ -237,22 +242,22 @@ class ReverifyMailSerializer(serializers.Serializer):
 		'''
 		resend verification email.
 		'''
-		username=self.validated_data.get('username')
-		user=CustomUser.objects.filter(username=username).first()
-		email=self.validated_data.get('email', None)
+		username=self.validated_data.get(KEY_USERNAME)
+		user=models.CustomUser.objects.filter(username=username).first()
+		email=self.validated_data.get(KEY_EMAIL)
 		if email != user.email:
 			user.email=email
 			user.save()
 		subject=get_subject_verification_mail()
 		current_site=settings.SERVER_HOST
-		token=get_verifytoken_for_user(user).get('access')
-		key_encrypted=encrypt_message(token)
+		token=tokens.get_verifytoken_for_user(user).get(KEY_ACCESS)
+		key_encrypted=utils.encrypt_message(token)
 		mail_body=get_body_verification_mail(user.username, current_site, key_encrypted)
-		send_email(subject, mail_body, user.email)
-		return ResultResponse(detail='Email resent successfully.',
+		utils.send_email(subject, mail_body, user.email)
+		return response.ResultResponse(detail=MESSAGE_EMAIL_RESENT_SUCCESS,
 		status_code=status.HTTP_200_OK, data={
-			'username': user.username,
-			'email': user.email,
+			KEY_USERNAME: user.username,
+			KEY_EMAIL: user.email,
 		}).get_response
 
 class LoginSerializer(serializers.Serializer):
@@ -260,74 +265,74 @@ class LoginSerializer(serializers.Serializer):
 	Login serializer.
 	'''
 	username=serializers.CharField()
-	password=serializers.CharField(style={'input_type': 'password'}, write_only=True)
+	password=serializers.CharField(style={KEY_INPUT_TYPE: VALUE_PASSWORD}, write_only=True)
 
 	def validate(self, data):
 		'''
 		validate username and password.
 		'''
-		if data is not None:
-			username=data.get('username', None)
-			password=data.get('password', None)
-			if username is not None and password is not None:
+		if data:
+			username=data.get(KEY_USERNAME)
+			password=data.get(KEY_PASSWORD)
+			if username and password :
 				user=authenticate(username=username, password=password)
-				if user is not None:
+				if user:
 					if user.is_active:
-						token=get_token_for_user(user)
+						token=tokens.get_token_for_user(user)
 					else:
-						msg='User is not active.'
+						msg=MESSAGE_USER_NOT_ACTIVE
 						raise serializers.ValidationError(msg)
 				else:
-					msg='Unable to login with provided credentials.'
+					msg=MESSAGE_UNABLE_TO_LOGIN_WITH_PROVIDER
 					raise serializers.ValidationError(msg)
 			else:
-				msg="Must include 'username' and 'password'."
+				msg=MESSAGE_MUST_INCLUDE_USERNAME
 				raise serializers.ValidationError(msg)
-		return ResultResponse(detail='Login Successfully.',
+		return response.ResultResponse(detail=MESSAGE_LOGIN_SUCCESS,
 		status_code=status.HTTP_200_OK, data=token).get_response
 class ProfileUpdateSerializer(NonNullModelSerializer):
 	class Meta:
-		model=CustomUser
-		fields=('username', 'email', 'avartar', 'mobile_number', 'first_name', \
-   				'last_name', 'address', 'city', 'country', 'postal_code', 'birthday')
+		model=models.CustomUser
+		fields=(KEY_USERNAME, KEY_EMAIL, KEY_AVARTAR, KEY_MOBILE_NUMBER, KEY_FIRST_NAME, \
+   				KEY_LAST_NAME, KEY_ADDRESS, KEY_CITY, KEY_COUNTRY, KEY_POSTAL_CODE, KEY_BIRTHDAY)
 		extra_kwargs={
-			'username': {'read_only': True},
+			KEY_USERNAME: {KEY_READ_ONLY: True},
 		}
 
 	def validate_mobile_number(self, value):
-		if value is not None and len(value) != 10:
-			raise serializers.ValidationError({'detail': 'Mobile number must be 10 digits.'})
-		if value is not None and not value.isdigit():
-			raise serializers.ValidationError({'detail': 'Mobile number must be numeric.'})
-		if value is not None and CustomUser.objects.filter(mobile_number=value).exclude(id=self.instance.id).exists():
-			raise serializers.ValidationError({'detail': 'A user with that mobile number already exists.'})
+		if not re.fullmatch(VALUE_VALIDATION_MOBILENUMBER_REGEX, value):
+			raise serializers.ValidationError(MESSAGE_MOBILENUMBER_INVALID)
+		if value and models.CustomUser.objects.filter(mobile_number=value).exclude(id=self.instance.id).exists():
+			raise serializers.ValidationError(MESSAGE_MOBILE_NUMBER_EXIST)
 		return value
 
 	def validate_email(self, value):
-		if value is not None and CustomUser.objects.filter(email=value).exclude(id=self.instance.id).exists():
+		if value and models.CustomUser.objects.filter(email=value).exclude(id=self.instance.id).exists():
 			if check_email_exists(value):
-				raise serializers.ValidationError({'detail': 'A user with that email already exists.'})
+				raise serializers.ValidationError(MESSAGE_EMAIL_EXIST)
 		return value
 
 	def validate_avatar(self, value):
-		if value is not None and value.size > settings.MAX_IMAGE_SIZE:
-			raise serializers.ValidationError({'detail': 'Image size must be less than 2MB.'})
+		if value and value.size > VALUE_IMAGE_MAX_SIZE:
+			raise serializers.ValidationError(MESSAGE_IMAGE_SIZE_TOO_LARGE)
+		if value and value.content_type not in VALUE_IMAGE_CONTENT_TYPES:
+			raise serializers.ValidationError(MESSAGE_IMAGE_TYPE_INVALID)
 		return value
 
 	def update(self, instance, validated_data):
-		instance.email=validated_data.get('email', instance.email)
-		instance.avartar=validated_data.get('avartar', instance.avartar)
-		instance.mobile_number=validated_data.get('mobile_number', instance.mobile_number)
-		instance.first_name=validated_data.get('first_name', instance.first_name)
-		instance.last_name=validated_data.get('last_name', instance.last_name)
-		instance.address=validated_data.get('address', instance.address)
-		instance.city=validated_data.get('city', instance.city)
-		instance.country=validated_data.get('country', instance.country)
-		instance.postal_code=validated_data.get('postal_code', instance.postal_code)
-		instance.birthday=validated_data.get('birthday', instance.birthday)
+		instance.email=validated_data.get(KEY_EMAIL, instance.email)
+		instance.avartar=validated_data.get(KEY_AVARTAR, instance.avartar)
+		instance.mobile_number=validated_data.get(KEY_MOBILE_NUMBER, instance.mobile_number)
+		instance.first_name=validated_data.get(KEY_FIRST_NAME, instance.first_name)
+		instance.last_name=validated_data.get(KEY_LAST_NAME, instance.last_name)
+		instance.address=validated_data.get(KEY_ADDRESS, instance.address)
+		instance.city=validated_data.get(KEY_CITY, instance.city)
+		instance.country=validated_data.get(KEY_COUNTRY, instance.country)
+		instance.postal_code=validated_data.get(KEY_POSTAL_CODE, instance.postal_code)
+		instance.birthday=validated_data.get(KEY_BIRTHDAY, instance.birthday)
 		instance.last_updated=datetime.now()
 		instance.save()
-		return ResultResponse(detail='You have successfully updated your profile.',
+		return response.ResultResponse(detail=MEASSAGE_PROFILE_UPDATE_SUCCESS,
 		status_code=status.HTTP_200_OK, data=ProfileUpdateSerializer(instance).data).get_response
 
 class PasswordUpdateSerializer(serializers.Serializer):
@@ -336,32 +341,32 @@ class PasswordUpdateSerializer(serializers.Serializer):
 	new_password2=serializers.CharField(required=True)
 
 	class Meta:
-		fields=('old_password', 'new_password', 'new_password2')
+		fields=(KEY_OLD_PASSWORD, KEY_NEW_PASSWORD, KEY_NEW_PASSWORD2)
 		extra__kwargs={
-			'old_password': {'write_only': True},
-			'new_password': {'write_only': True},
-			'new_password2': {'write_only': True},
+			KEY_OLD_PASSWORD: {KEY_WRITE_ONLY: True},
+			KEY_NEW_PASSWORD: {KEY_WRITE_ONLY: True},
+			KEY_NEW_PASSWORD2: {KEY_WRITE_ONLY: True},
 		}
 
 	def validate_old_password(self, value):
 		if not self.instance.check_password(value):
-			raise serializers.ValidationError({'detail': 'Old password is incorrect.'})
+			raise serializers.ValidationError(MESSAGE_PASSWORD_INCORRECT)
 		return value
 
 	def validate(self, data):
-		if validate_password(data.get('new_password')) != data.get('new_password2'):
-			raise serializers.ValidationError({'detail': 'Passwords do not match.'})
+		if validate_password(data.get(KEY_NEW_PASSWORD)) != data.get(KEY_NEW_PASSWORD2):
+			raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_MATCH)
 		return data
 
 	def update(self, instance, validated_data):
-		new_password=validated_data.get('new_password', None)
+		new_password=validated_data.get(KEY_NEW_PASSWORD)
 		instance.set_password(new_password)
 		instance.save()
-		return ResultResponse(detail='Password updated successfully.',
+		return response.ResultResponse(detail=MESSAGE_PASSWORD_UPDATE_SUCCESS,
 		status_code=status.HTTP_200_OK).get_response
 
 def get_subject_reset_password_mail():
-	return 'Reset Password'
+	return VALUE_RESET_PASSWORD
 
 def get_body_reset_password_mail(username, current_site, key_encrypted):
 	return f'''
@@ -370,7 +375,7 @@ def get_body_reset_password_mail(username, current_site, key_encrypted):
 		You have requested to reset your password.
 
 		Please click on the following link to reset your password:
-		{current_site}/auth/reset-password?key={key_encrypted}
+		{current_site}/api/v1/user/reset_password/?key={key_encrypted}
 
 		If you did not make this request, please ignore this email.
 		This is an automated email. Please do not reply to this email.
@@ -383,23 +388,23 @@ class PasswordResetSerializer(serializers.Serializer):
 	email=serializers.EmailField()
 
 	def validate_email(self, value):
-		if not CustomUser.objects.filter(email=value).exists():
-			raise serializers.ValidationError({'detail': 'Email does not exist.'})
+		if not models.CustomUser.objects.filter(email=value).exists():
+			raise serializers.ValidationError(MESSAGE_EMAIL_NOT_EXIST)
 		return value
 
 	def save(self):
 		return self.reset_password()
 
 	def reset_password(self):
-		email=self.validated_data.get('email', None)
-		user=CustomUser.objects.get(email=email)
+		email=self.validated_data.get(KEY_EMAIL)
+		user=models.CustomUser.objects.get(email=email)
 		subject=get_subject_reset_password_mail()
 		current_site=settings.SERVER_HOST
-		token=get_reset_password_token_for_user(user).get('access')
-		key_encrypted=encrypt_message(token)
+		token=tokens.get_reset_password_token_for_user(user).get(KEY_ACCESS)
+		key_encrypted=tokens.encrypt_message(token)
 		mail_body=get_body_reset_password_mail(user.username, current_site, key_encrypted)
-		send_email(subject, mail_body, user.email)
-		data=ResultResponse(detail='Reset password link sent successfully.',
+		utils.send_email(subject, mail_body, user.email)
+		data=response.ResultResponse(detail=MESSAGE_RESET_PASSWORD_SUCCESS,
 		status_code=status.HTTP_200_OK, data=self.data)
 		return data.get_response
 
@@ -407,103 +412,104 @@ class VerifyResetPasswordSerializer(serializers.Serializer):
 	key=serializers.CharField()
 
 	def validate_key(self, value):
-		if not decrypt_message(value):
-			raise serializers.ValidationError({'detail':INVALID_KEY})
+		if not utils.decrypt_message(value):
+			raise serializers.ValidationError({KEY_DETAIL:VALUE_INVALID_KEY})
 		return value
 
 	def save(self):
 		return self.verify_reset_password()
 
 	def verify_reset_password(self):
-		key=self.validated_data.get('key', None)
-		token=decrypt_message(key)
+		key=self.validated_data.get(KEY_KEY)
+		token=utils.decrypt_message(key)
 		try:
 			payload=AccessToken(token).payload
-			user_id=payload.get('user_id')
-			verification_key=payload('verification_key')
-			token_type=payload('type')
+			user_id=payload.get(KEY_USER_ID)
+			verification_key=payload(KEY_VERIFICATION_KEY)
+			token_type=payload(KEY_TYPE)
 		except TokenError as e:
-			raise serializers.ValidationError({'detail':e})
-		if token_type != 'reset_password':
-			raise serializers.ValidationError({'detail':INVALID_KEY})
-		user=CustomUser.objects.get(id=user_id)
+			raise serializers.ValidationError(e)
+		if token_type != VALUE_RESET_PASSWORD:
+			raise serializers.ValidationError(VALUE_INVALID_KEY)
+		user=models.CustomUser.objects.get(id=user_id)
 		if not user.email.is_verified:
-			raise serializers.ValidationError({'detail': 'Please verify your email first.'})
+			raise serializers.ValidationError(MESSAGE_VERIFY_EMAIL_FIRST)
 		if user.reset_password.verification_key != verification_key:
-			raise serializers.ValidationError({'detail':INVALID_KEY})
+			raise serializers.ValidationError({KEY_DETAIL:VALUE_INVALID_KEY})
 		if user.reset_password.verification_at + user.reset_password.verification_expiry < datetime.now():
-			raise serializers.ValidationError({'detail': 'Key has expired.'})
+			raise serializers.ValidationError(MESSAGE_KEY_HAS_EXPIRED)
 		user.save()
-		return ResultResponse(detail='Reset password link verified successfully.',
-		status_code=status.HTTP_200_OK, data=get_token_for_user(user)).get_response
+		return response.ResultResponse(detail=MESSAGE_SEND_RESET_PASSWORD_SUCCESS,
+		status_code=status.HTTP_200_OK, data=tokens.get_token_for_user(user)).get_response
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
 	access_token=serializers.CharField(required=True)
-	new_password=serializers.CharField(required=True)
-	new_password2=serializers.CharField(required=True)
+	KEY_NEW_PASSWORD=serializers.CharField(required=True)
+	KEY_NEW_PASSWORD2=serializers.CharField(required=True)
 
 	def validate(self, data):
-		if validate_password(data.get('new_password')) != data.get('new_password2'):
-			raise serializers.ValidationError({'detail': 'Passwords do not match.'})
+		if validate_password(data.get(KEY_NEW_PASSWORD)) != data.get(KEY_NEW_PASSWORD2):
+			raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_MATCH)
 		return data
 
 	def save(self):
 		return self.reset_password()
 
 	def reset_password(self):
-		token=self.validated_data.get('access_token', None)
+		token=self.validated_data.get(VALUE_ACCESS_TOKEN)
 		try:
 			payload=AccessToken(token).payload
-			user_id=payload.get('user_id')
+			user_id=payload.get(KEY_USER_ID)
 		except TokenError as e:
-			raise serializers.ValidationError({'detail':e})
-		user=CustomUser.objects.get(id=user_id)
-		new_password=self.validated_data.get('new_password', None)
-		user.set_password(new_password)
+			raise serializers.ValidationError({KEY_DETAIL:e})
+		user=models.CustomUser.objects.get(id=user_id)
+		KEY_NEW_PASSWORD=self.validated_data.get(KEY_NEW_PASSWORD)
+		user.set_password(KEY_NEW_PASSWORD)
 		user.save()
-		return ResultResponse(detail='Password reset successfully.',
+		return response.ResultResponse(detail=MESSAGE_RESET_PASSWORD_SUCCESS,
 		status_code=status.HTTP_200_OK, data=self.data).get_response
 
 class LogoutSerializer(serializers.Serializer):
 	refresh_token=serializers.CharField(required=True)
 	
 	def validate(self, data):
-		self.token=data.get('refresh_token')
+		self.token=data.get(KEY_REFRESH_TOKEN)
 		return data
 
 	def logout(self):
 		try:
 			RefreshToken(self.token).blacklist()
-			return ResultResponse(detail='Logout successfully.',
+			return response.ResultResponse(detail=MESSAGE_LOGOUT_SUCCESS,
 		status_code=status.HTTP_205_RESET_CONTENT).get_response
 		except TokenError as e:
-			raise serializers.ValidationError({'detail':e})
+			raise serializers.ValidationError({KEY_DETAIL:e})
 		
 class LogoutEverywhereSerializer(serializers.Serializer):
 	def logout_everywhere(self,user):
 		for token in OutstandingToken.objects.filter(user=user):
 			_, _=BlacklistedToken.objects.get_or_create(token_id=token.id)
-		return ResultResponse(detail='Loutout with all everywhere successful.',
+		return response.ResultResponse(detail=MESSAGE_LOGOUT_EVERYWHERE_SUCCESS,
 		status_code=status.HTTP_205_RESET_CONTENT).get_response
 		
 class RefreshTokenSerializer(serializers.Serializer):
 	refresh_token=serializers.CharField(required=True)
 
 	def validate(self, data):
-		self.token=data.get('refresh_token')
+		self.token=data.get(KEY_REFRESH_TOKEN)
 		return data
 
 	def refresh(self):
 		try:
 			refresh=RefreshToken(self.token)
-			if settings.SIMPLE_JWT.get('ROTATE_REFRESH_TOKENS') and settings.SIMPLE_JWT.get('BLACKLIST_AFTER_ROTATION'):
+			if settings.SIMPLE_JWT.get(KEY_ROTATE_REFRESH_TOKENS) and\
+						settings.SIMPLE_JWT.get(KEY_BLACKLIST_AFTER_ROTATION):
 				refresh.blacklist()
 			refresh.set_jti()
 			refresh.set_exp()
 			refresh.set_iat()
-			return ResultResponse(detail='Refresh token successfully.',
+			return response.ResultResponse(detail=MESSAGE_REFRESH_TOKEN_SUCCESS,
 			status_code=status.HTTP_200_OK, data={
-			'refresh': str(refresh),
-			'access': str(refresh.access_token),}).get_response
+			KEY_REFRESH: str(refresh),
+			KEY_ACCESS: str(refresh.access_token),}).get_response
 		except TokenError as e:
-			raise serializers.ValidationError({'detail':e})
+			raise serializers.ValidationError({KEY_DETAIL:e})

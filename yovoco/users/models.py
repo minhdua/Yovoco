@@ -1,8 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from picklefield.fields import PickledObjectField
 from rest_framework import exceptions
-
+from yovoco.constants import VALUE_AUTH_USER, VALUE_DEFAULT_AVATAR 
 class Verification:
 	def __init__(self, is_verified=False, verification_key=None, verification_expiry=None, verification_at=None):
 		self.is_verified=is_verified
@@ -19,21 +19,12 @@ class CustomUser(AbstractUser):
 	verified_email=PickledObjectField(default=dict)
 	verified_mobile_number=PickledObjectField(default=dict)
 	reset_password=PickledObjectField(default=dict)
-	avartar=models.URLField(blank=True, null=True,default='avartar/default.png')
+	avartar=models.URLField(blank=True, null=True,default=VALUE_DEFAULT_AVATAR)
 	last_updated=models.DateTimeField(auto_now=True)
 	email=models.EmailField(blank=True, null=True)
 	city=models.CharField(max_length=255, blank=True, null=True)
 	country=models.CharField(max_length=255, blank=True, null=True)
 	postal_code=models.CharField(max_length=255, blank=True, null=True)
 	birthday=models.DateField(blank=True, null=True)
-
-	@classmethod
-	def get_by_email(cls,email):
-		users=CustomUser.objects.filter(email=email).all()
-		for user in users:
-			if user.verified_email.get('is_verified',False):
-				return user
-		raise exceptions.NotFound('User not found')
-
 	class Meta:
-		db_table='auth_user'
+		db_table=VALUE_AUTH_USER

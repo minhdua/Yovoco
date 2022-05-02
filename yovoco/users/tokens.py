@@ -1,10 +1,10 @@
-from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-from rest_framework_simplejwt import exceptions
+from datetime import datetime, timedelta
+from rest_framework_simplejwt import exceptions, tokens
 from users.models import CustomUser, Verification
 from users.utils import get_random_otp_code
-from datetime import datetime, timedelta
+from yovoco.constants import *
 
-class VerifyEmailToken(RefreshToken):
+class VerifyEmailToken(tokens.RefreshToken):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -16,10 +16,10 @@ class VerifyEmailToken(RefreshToken):
 		"""
 		token=super().for_user(user)
 		otp_code=get_random_otp_code()
-		token['verification_key']=otp_code
-		token['email']=user.email
-		token['type']='verify_email'
-		user_id=token.get('user_id')
+		token[KEY_VERIFICATION_KEY]=otp_code
+		token[KEY_EMAIL]=user.email
+		token[KEY_TYPE]='verify_email'
+		user_id=token.get(KEY_USER_ID)
 		user=CustomUser.objects.get(id=user_id)
 
 		verified_email=Verification(
@@ -32,7 +32,7 @@ class VerifyEmailToken(RefreshToken):
 		user.save()
 		return token
 
-class ResetPasswordToken(RefreshToken):
+class ResetPasswordToken(tokens.RefreshToken):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -44,9 +44,9 @@ class ResetPasswordToken(RefreshToken):
 		"""
 		token=super().for_user(user)
 		otp_code=get_random_otp_code()
-		token['verification_key']=otp_code
-		token['type']='reset_password'
-		user_id=token.get('user_id')
+		token[KEY_VERIFICATION_KEY]=otp_code
+		token[KEY_TYPE]=VALUE_RESET_PASSWORD
+		user_id=token.get(KEY_USER_ID)
 		user=CustomUser.objects.get(id=user_id)
 		user.password_reset.verification_key=otp_code
 		user.password_reset.verification_expiry=datetime.timedelta(minutes=5)
@@ -62,8 +62,8 @@ def get_verifytoken_for_user(user):
 	refresh=VerifyEmailToken.for_user(user=user)
 
 	return {
-		'refresh': str(refresh),
-		'access': str(refresh.access_token),
+		KEY_REFRESH: str(refresh),
+		KEY_ACCESS: str(refresh.access_token),
 	}
 
 def get_token_for_user(user):
@@ -71,10 +71,10 @@ def get_token_for_user(user):
 	Returns a token for a given user.
 	"""
 	user=CustomUser.objects.get(id=user.id)
-	refresh=RefreshToken.for_user(user=user)
+	refresh=tokens.RefreshToken.for_user(user=user)
 	return {
-		'refresh': str(refresh),
-		'access': str(refresh.access_token),
+		KEY_REFRESH: str(refresh),
+		KEY_ACCESS: str(refresh.access_token),
 	}
 
 def get_user_from_token(token):
@@ -82,10 +82,10 @@ def get_user_from_token(token):
 	Returns a user from a token.
 	"""
 	try:
-		refresh=RefreshToken(token)
+		refresh=tokens.RefreshToken(token)
 		user=refresh.user
-	except TokenError:
-		raise exceptions.AuthenticationFailed('Invalid token')
+	except tokens.TokenError:
+		raise exceptions.AuthenticationFailed(MESSAGE_INVALID_TOKEN)
 
 	return user
 
@@ -97,6 +97,6 @@ def get_reset_password_token_for_user(user):
 	refresh=ResetPasswordToken.for_user(user=user)
 
 	return {
-		'refresh': str(refresh),
-		'access': str(refresh.access_token),
+		KEY_REFRESH: str(refresh),
+		KEY_ACCESS: str(refresh.access_token),
 	}

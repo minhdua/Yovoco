@@ -6,15 +6,16 @@ from study.views import (LessonViewSet,
 						 TestViewSet, 
 						 QuizViewSet, 
 						 QuizContentViewSet)
+from yovoco.constants import *
 
 router=DefaultRouter()
-router.register(r'lessons', LessonViewSet)
-router.register(r'lesson-items', LessonItemViewSet)
-router.register(r'lesson-contents', LessonContentViewSet)
-router.register(r'tests', TestViewSet)
-router.register(r'quizzes', QuizViewSet)
-router.register(r'quiz-contents', QuizContentViewSet)
+router.register(VALUE_LESSONS, LessonViewSet)
+router.register(VALUE_LESSON_ITEMS, LessonItemViewSet)
+router.register(VALUE_LESSON_CONTENTS, LessonContentViewSet)
+router.register(VALUE_TESTS, TestViewSet)
+router.register(VALUE_QUIZZES, QuizViewSet)
+router.register(VALUE_QUIZ_CONTENTS, QuizContentViewSet)
 
 urlpatterns=[
-	path('', include(router.urls)),
+	path(VALUE_EMPTY_STRING, include(router.urls)),
 ]
