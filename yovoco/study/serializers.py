@@ -4,7 +4,7 @@ from entities.models import Vocabulary
 from rest_framework import serializers
 from study.models import (Lesson, LessonItem, LessonContent, Test, Quiz, QuizContent, QuizType)
 from yovoco.constants import *
-import random
+import random, uuid
 class LessonSerializer(serializers.ModelSerializer):
 	class Meta:
 		model=Lesson
@@ -22,7 +22,7 @@ class LessonSerializer(serializers.ModelSerializer):
 		if request:
 			user=request.user
 			name=data.get(KEY_NAME)
-			instance=self.instance if self.instance else Lesson(id=-1)
+			instance=self.instance if self.instance else Lesson(id=uuid.uuid4())
 			is_exists=Lesson.objects.filter(created_by=user, name=name)\
 									.exclude(deleted_by=user).exclude(id=instance.id).exists();
 			if is_exists:
@@ -56,7 +56,7 @@ class LessonItemSerializer(serializers.ModelSerializer):
 		if request:
 			user=request.user
 			vocabulary=data.get(KEY_VOCABULARY)
-			instance=self.instance if self.instance else LessonItem(id=-1)
+			instance=self.instance if self.instance else LessonItem(id=uuid.uuid4())
 			is_exists=LessonItem.objects.filter(created_by=user, vocabulary=vocabulary)\
 										.exclude(deleted_by=user).exclude(id=instance.id).exists();
 			if is_exists:
@@ -97,7 +97,7 @@ class LessonContentSerializer(serializers.ModelSerializer):
 		lesson=data.get(KEY_LESSON)
 		item=data.get(KEY_ITEM,)
 		user=self.context.get(KEY_REQUEST).user
-		instance=self.instance if self.instance else LessonContent(id=-1)
+		instance=self.instance if self.instance else LessonContent(id=uuid.uuid4())
 		content_exists=LessonContent.objects.filter(lesson=lesson, item=item)\
 											.exclude(deleted_by=user).exclude(id=instance.id).exists()
 		if content_exists:
@@ -125,7 +125,7 @@ class TestSerializer(serializers.ModelSerializer):
 	def validate(self, data):
 		user=self.context.get(KEY_REQUEST).user
 		name=data.get(KEY_NAME)
-		instance=self.instance if self.instance else Test(id=-1)
+		instance=self.instance if self.instance else Test(id=uuid.uuid4())
 		is_exists=Test.objects.filter(created_by=user, name=name)\
 							.exclude(deleted_by=user).exclude(id=instance.id).exists();
 		if is_exists:
@@ -232,7 +232,7 @@ class QuizSerializer(serializers.ModelSerializer):
 		answer1=data[KEY_ANSWER1]=self.get_answer_random(data) if not data.get(KEY_ANSWER1) else data.get(KEY_ANSWER1)
 		answer2=data[KEY_ANSWER2]=self.get_answer_random(data) if not data.get(KEY_ANSWER2) else data.get(KEY_ANSWER2)
 		answer3=data[KEY_ANSWER3]=self.get_answer_random(data) if not data.get(KEY_ANSWER3) else data.get(KEY_ANSWER3)
-		instance=self.instance if self.instance else Quiz(id=-1)
+		instance=self.instance if self.instance else Quiz(id=uuid.uuid4())
 		quiz_find=Quiz.objects.filter(vocabulary=vocabulary, created_by=user,\
 									question=question, answer1=answer1,\
 									answer2=answer2, answer3=answer3)\
@@ -280,7 +280,7 @@ class QuizContentSerializer(serializers.ModelSerializer):
 		test=data.get(KEY_TEST)
 		quiz=data.get(KEY_QUIZ)
 		user=self.context.get(KEY_REQUEST).user
-		instance=self.instance if self.instance else QuizContent(id=-1)
+		instance=self.instance if self.instance else QuizContent(id=uuid.uuid4())
 		test_content_exists=QuizContent.objects.filter(quiz=quiz, test=test)\
 											.exclude(deleted_by=user).exclude(id=instance.id).exists()
 		if test_content_exists:

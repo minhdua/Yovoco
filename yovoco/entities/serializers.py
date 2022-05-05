@@ -3,6 +3,7 @@ from entities.models import Collection, Vocabulary
 from rest_framework import serializers
 import requests
 from yovoco.constants import *
+import uuid
 class CollectionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model=Collection
@@ -150,7 +151,7 @@ class VocabularySerializer(serializers.ModelSerializer):
 			data[KEY_AUDIO]=self.get_audio(data, json_data)
 
 		user=self.context.get(KEY_REQUEST).user
-		new_instance=Vocabulary(created_by=user,id=-1)
+		new_instance=Vocabulary(created_by=user,id=uuid.uuid4())
 		pos=data.get(KEY_POS, new_instance.pos)
 		language=data.get(KEY_LANGUAGE, new_instance.language)
 		collection=data.get(KEY_COLLECTION)
