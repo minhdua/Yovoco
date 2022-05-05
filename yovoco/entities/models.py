@@ -15,7 +15,7 @@ class Vocabulary( AuditModel):
 	Vocabulary
 	"""
 	word=models.CharField(max_length=255)
-	meaning=models.CharField(max_length=100, blank=True, null=True)
+	meaning=models.CharField(max_length=2000, blank=True, null=True)
 	example=models.CharField(max_length=2000, blank=True, null=True)
 	phonetic=models.CharField(max_length=1000, blank=True, null=True)
 	audio=models.CharField(max_length=1000, blank=True, null=True)

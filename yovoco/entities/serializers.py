@@ -31,13 +31,12 @@ class CollectionSerializer(serializers.ModelSerializer):
 		return super(CollectionSerializer, self).save(**kwargs)
 
 	def update(self, instance, data):
-		instance.name=data.get(KEY_NAME, instance.name)
-		instance.description=data.get(KEY_DESCRIPTION, instance.description)
-		instance.image=data.get(KEY_IMAGE, instance.image)
-		instance.updated_by=self.context.get(KEY_REQUEST).user
-		instance.updated_at=datetime.now()
-		instance.save()
-		return instance
+		self.instance.name=data.get(KEY_NAME, instance.name)
+		self.instance.description=data.get(KEY_DESCRIPTION, instance.description)
+		self.instance.image=data.get(KEY_IMAGE, instance.image)
+		self.instance.updated_by=self.context.get(KEY_REQUEST).user
+		self.instance.updated_at=datetime.now()
+		return super(CollectionSerializer, self).update(self.instance, data)
 		
 class VocabularySerializer(serializers.ModelSerializer):
 	class Meta:
@@ -47,7 +46,8 @@ class VocabularySerializer(serializers.ModelSerializer):
 		extra_kwargs={
 			KEY_ID: {KEY_READ_ONLY: True},
 			KEY_WORD: {KEY_REQUIRED: True},
-			KEY_POS_EXTEND: {KEY_READ_ONLY: False}
+			KEY_POS_EXTEND: {KEY_READ_ONLY: False},
+			KEY_COLLECTION: {KEY_REQUIRED: True, KEY_ALLOW_NULL: True},
 		}
 	
 	def validate_audio(self, value):
@@ -153,28 +153,26 @@ class VocabularySerializer(serializers.ModelSerializer):
 		new_instance=Vocabulary(created_by=user,id=-1)
 		pos=data.get(KEY_POS, new_instance.pos)
 		language=data.get(KEY_LANGUAGE, new_instance.language)
-		collection_data=data.get(KEY_COLLECTION)
-		collection=self.validate_collection(collection_data)
+		collection=data.get(KEY_COLLECTION)
 		instance=self.instance if self.instance else new_instance
 		data[KEY_COLLECTION]=collection
-		is_exists=Vocabulary.objects.filter(created_by_id=user, word=word,
+		vocabulary_find=Vocabulary.objects.filter(created_by_id=user, word=word,
 												pos=pos, language=language, collection_id=collection)\
-										.exclude(deleted_by=user).exclude(id=instance.id).exists();
-		if is_exists:
-			raise serializers.ValidationError(MESSSAGE_VOCABULARY_EXIST)
+										.exclude(deleted_by=user).exclude(id=instance.id);
+		if vocabulary_find.exists():
+			self.instance = vocabulary_find.first()
 		return data
 
 	def save(self, **kwargs):
-		
 		return super(VocabularySerializer, self).save(**kwargs)
 	
-	def update(self, instance, validated_data):
-		instance.word=validated_data.get(KEY_WORD, instance.word)
-		instance.meaning=validated_data.get(KEY_MEANING, instance.meaning)
-		instance.example=validated_data.get(KEY_EXAMPLE, instance.example)
-		instance.phonetic=validated_data.get(KEY_PHONETIC, instance.phonetic)
-		instance.audio=validated_data.get(KEY_AUDIO, instance.audio)
-		instance.pos=validated_data.get(KEY_POS, instance.pos)
-		instance.language=validated_data.get(KEY_LANGUAGE, instance.language)
-		instance.save()
-		return instance
+	def update(self, instance, data):
+		self.instance.word=data.get(KEY_WORD, instance.word)
+		self.instance.meaning=data.get(KEY_MEANING, instance.meaning)
+		self.instance.example=data.get(KEY_EXAMPLE, instance.example)
+		self.instance.phonetic=data.get(KEY_PHONETIC, instance.phonetic)
+		self.instance.audio=data.get(KEY_AUDIO, instance.audio)
+		self.instance.pos=data.get(KEY_POS, instance.pos)
+		self.instance.language=data.get(KEY_LANGUAGE, instance.language)
+		self.instance.save()
+		return self.instance

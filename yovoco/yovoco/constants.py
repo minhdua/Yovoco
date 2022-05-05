@@ -243,4 +243,6 @@ KEY_PHONETICS='phonetics'
 DICTIONARY_API_URL='https://api.dictionaryapi.dev/api/v2/entries/en/{}'
 IMAGE_DEFAULT_FOLDER='images/'
 VALUE_ANSWER_DEFAULT='No answer'
-
+MESSAGE_VALIDATION_VOCABULARIES_IS_EMPTY='Vocabularies is empty'
+KEY_ALLOW_NULL='allow_null'
+KEY_MESSAGE='message'

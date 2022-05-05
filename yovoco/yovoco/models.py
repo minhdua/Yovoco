@@ -12,7 +12,11 @@ class AuditModel(models.Model):
 	class Meta:
 		abstract=True
 
-class Language(models.TextChoices):
+class TextChoices(models.TextChoices):
+	@classmethod
+	def members(cls):
+		return [member for member in cls]
+class Language(TextChoices):
 	"""
 	Language
 	"""
@@ -51,7 +55,7 @@ class Language(models.TextChoices):
 	UKRAINIAN='uk', 'Ukrainian'
 	WELSH='cy', 'Welsh'
 
-class PartOfSpeech(models.TextChoices):
+class PartOfSpeech(TextChoices):
 	NOUN='noun'
 	VERB='verb'
 	ADJ='adjective'
@@ -65,7 +69,7 @@ class PartOfSpeech(models.TextChoices):
 	PRT='particle'
 	X='other'
 
-class QuizType(models.TextChoices):
+class QuizType(TextChoices):
 	"""
 	QuizType
 	"""
@@ -75,3 +79,4 @@ class QuizType(models.TextChoices):
 	FIND_WORD_FROM_IMAGE='fwi', 'Find Word from Image'
 	FIND_WORD_FROM_AUDIO='fwa', 'Find Word from Audio'
 	FIND_MEAN_FROM_IMAGE='fmi', 'Find Mean from Image'
+	

@@ -28,23 +28,23 @@ class CustomModelViewSet(ModelViewSet):
 	
 	def list(self, request, *args, **kwargs):
 		response=super(CustomModelViewSet, self).list(request, *args, **kwargs)
-		response.data.update({KEY_DETAIL: MESSAGE_SUCCESS, KEY_STATUS_CODE: status.HTTP_200_OK})
+		response.data.update({KEY_DETAIL: MESSAGE_SUCCESS})
 		return response
 
 	def retrieve(self, request, *args, **kwargs):
 		response=super(CustomModelViewSet, self).retrieve(request, *args, **kwargs)
 		data=deepcopy(response.data)
-		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_STATUS_CODE: status.HTTP_200_OK, KEY_RESULTS: data}
+		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: data}
 		return response
 	
 	def create(self, request, *args, **kwargs):
 		response=super(CustomModelViewSet, self).create(request, *args, **kwargs)
 		data=deepcopy(response.data)
-		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_STATUS_CODE: status.HTTP_200_OK, KEY_RESULTS: data}
+		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: data}
 		return response
 	
 	def update(self, request, *args, **kwargs):
 		response=super(CustomModelViewSet, self).update(request, *args, **kwargs)
 		data=deepcopy(response.data)
-		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_STATUS_CODE: status.HTTP_200_OK, KEY_RESULTS: data}
+		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: data}
 		return response

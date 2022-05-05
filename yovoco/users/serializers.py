@@ -72,8 +72,7 @@ class ProfileSerializer(NonNullModelSerializer):
 			KEY_BIRTHDAY: {KEY_FORMAT: VALUE_STRING_FORMAT_DATE},
 		}
 	def get(self):
-		return response.ResultResponse(MESSAGE_GET_PROFILE_SUCCESS, status_code=status.HTTP_200_OK,\
-   	data=self.data).get_response
+		return response.ResultResponse(MESSAGE_GET_PROFILE_SUCCESS, data=self.data).get_response
 
 class RegistrationSerializer(NonNullModelSerializer):
 	'''
@@ -211,11 +210,10 @@ class VerifiedMailSerializer(serializers.Serializer):
 		user.verified_email[KEY_IS_VERIFIED]=True
 		user.email=email
 		user.save()
-		return response.ResultResponse(detail=MESSAGE_VERIFIED_SUCCESS,
-		status_code=status.HTTP_200_OK, data={
-			KEY_USERNAME: user.username,
-			KEY_EMAIL: user.email,
-		}).get_response
+		return response.ResultResponse(detail=MESSAGE_VERIFIED_SUCCESS,data={
+																		KEY_USERNAME: user.username,
+																		KEY_EMAIL: user.email,
+																	}).get_response
 
 class ReverifyMailSerializer(serializers.Serializer):
 	'''
@@ -254,11 +252,10 @@ class ReverifyMailSerializer(serializers.Serializer):
 		key_encrypted=utils.encrypt_message(token)
 		mail_body=get_body_verification_mail(user.username, current_site, key_encrypted)
 		utils.send_email(subject, mail_body, user.email)
-		return response.ResultResponse(detail=MESSAGE_EMAIL_RESENT_SUCCESS,
-		status_code=status.HTTP_200_OK, data={
-			KEY_USERNAME: user.username,
-			KEY_EMAIL: user.email,
-		}).get_response
+		return response.ResultResponse(detail=MESSAGE_EMAIL_RESENT_SUCCESS, data={
+																				KEY_USERNAME: user.username,
+																				KEY_EMAIL: user.email,
+																			}).get_response
 
 class LoginSerializer(serializers.Serializer):
 	'''
@@ -288,8 +285,7 @@ class LoginSerializer(serializers.Serializer):
 			else:
 				msg=MESSAGE_MUST_INCLUDE_USERNAME
 				raise serializers.ValidationError(msg)
-		return response.ResultResponse(detail=MESSAGE_LOGIN_SUCCESS,
-		status_code=status.HTTP_200_OK, data=token).get_response
+		return response.ResultResponse(detail=MESSAGE_LOGIN_SUCCESS, data=token).get_response
 class ProfileUpdateSerializer(NonNullModelSerializer):
 	class Meta:
 		model=models.CustomUser
@@ -320,20 +316,20 @@ class ProfileUpdateSerializer(NonNullModelSerializer):
 		return value
 
 	def update(self, instance, validated_data):
-		instance.email=validated_data.get(KEY_EMAIL, instance.email)
-		instance.avartar=validated_data.get(KEY_AVARTAR, instance.avartar)
-		instance.mobile_number=validated_data.get(KEY_MOBILE_NUMBER, instance.mobile_number)
-		instance.first_name=validated_data.get(KEY_FIRST_NAME, instance.first_name)
-		instance.last_name=validated_data.get(KEY_LAST_NAME, instance.last_name)
-		instance.address=validated_data.get(KEY_ADDRESS, instance.address)
-		instance.city=validated_data.get(KEY_CITY, instance.city)
-		instance.country=validated_data.get(KEY_COUNTRY, instance.country)
-		instance.postal_code=validated_data.get(KEY_POSTAL_CODE, instance.postal_code)
-		instance.birthday=validated_data.get(KEY_BIRTHDAY, instance.birthday)
-		instance.last_updated=datetime.now()
-		instance.save()
+		self.instance.email=validated_data.get(KEY_EMAIL, instance.email)
+		self.instance.avartar=validated_data.get(KEY_AVARTAR, instance.avartar)
+		self.instance.mobile_number=validated_data.get(KEY_MOBILE_NUMBER, instance.mobile_number)
+		self.instance.first_name=validated_data.get(KEY_FIRST_NAME, instance.first_name)
+		self.instance.last_name=validated_data.get(KEY_LAST_NAME, instance.last_name)
+		self.instance.address=validated_data.get(KEY_ADDRESS, instance.address)
+		self.instance.city=validated_data.get(KEY_CITY, instance.city)
+		self.instance.country=validated_data.get(KEY_COUNTRY, instance.country)
+		self.instance.postal_code=validated_data.get(KEY_POSTAL_CODE, instance.postal_code)
+		self.instance.birthday=validated_data.get(KEY_BIRTHDAY, instance.birthday)
+		self.instance.last_updated=datetime.now()
+		self.instance.save()
 		return response.ResultResponse(detail=MEASSAGE_PROFILE_UPDATE_SUCCESS,
-		status_code=status.HTTP_200_OK, data=ProfileUpdateSerializer(instance).data).get_response
+						data=ProfileUpdateSerializer(self.instance).data).get_response
 
 class PasswordUpdateSerializer(serializers.Serializer):
 	old_password=serializers.CharField(required=True)
@@ -362,8 +358,7 @@ class PasswordUpdateSerializer(serializers.Serializer):
 		new_password=validated_data.get(KEY_NEW_PASSWORD)
 		instance.set_password(new_password)
 		instance.save()
-		return response.ResultResponse(detail=MESSAGE_PASSWORD_UPDATE_SUCCESS,
-		status_code=status.HTTP_200_OK).get_response
+		return response.ResultResponse(detail=MESSAGE_PASSWORD_UPDATE_SUCCESS).get_response
 
 def get_subject_reset_password_mail():
 	return VALUE_RESET_PASSWORD
@@ -404,8 +399,7 @@ class PasswordResetSerializer(serializers.Serializer):
 		key_encrypted=tokens.encrypt_message(token)
 		mail_body=get_body_reset_password_mail(user.username, current_site, key_encrypted)
 		utils.send_email(subject, mail_body, user.email)
-		data=response.ResultResponse(detail=MESSAGE_RESET_PASSWORD_SUCCESS,
-		status_code=status.HTTP_200_OK, data=self.data)
+		data=response.ResultResponse(detail=MESSAGE_RESET_PASSWORD_SUCCESS, data=self.data)
 		return data.get_response
 
 class VerifyResetPasswordSerializer(serializers.Serializer):
@@ -439,8 +433,7 @@ class VerifyResetPasswordSerializer(serializers.Serializer):
 		if user.reset_password.verification_at + user.reset_password.verification_expiry < datetime.now():
 			raise serializers.ValidationError(MESSAGE_KEY_HAS_EXPIRED)
 		user.save()
-		return response.ResultResponse(detail=MESSAGE_SEND_RESET_PASSWORD_SUCCESS,
-		status_code=status.HTTP_200_OK, data=tokens.get_token_for_user(user)).get_response
+		return response.ResultResponse(detail=MESSAGE_SEND_RESET_PASSWORD_SUCCESS, data=tokens.get_token_for_user(user)).get_response
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
 	access_token=serializers.CharField(required=True)
@@ -466,8 +459,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 		KEY_NEW_PASSWORD=self.validated_data.get(KEY_NEW_PASSWORD)
 		user.set_password(KEY_NEW_PASSWORD)
 		user.save()
-		return response.ResultResponse(detail=MESSAGE_RESET_PASSWORD_SUCCESS,
-		status_code=status.HTTP_200_OK, data=self.data).get_response
+		return response.ResultResponse(detail=MESSAGE_RESET_PASSWORD_SUCCESS, data=self.data).get_response
 
 class LogoutSerializer(serializers.Serializer):
 	refresh_token=serializers.CharField(required=True)
@@ -507,9 +499,8 @@ class RefreshTokenSerializer(serializers.Serializer):
 			refresh.set_jti()
 			refresh.set_exp()
 			refresh.set_iat()
-			return response.ResultResponse(detail=MESSAGE_REFRESH_TOKEN_SUCCESS,
-			status_code=status.HTTP_200_OK, data={
+			return response.ResultResponse(detail=MESSAGE_REFRESH_TOKEN_SUCCESS, data={
 			KEY_REFRESH: str(refresh),
-			KEY_ACCESS: str(refresh.access_token),}).get_response
+			KEY_ACCESS: str(refresh.access_token)}).get_response
 		except TokenError as e:
 			raise serializers.ValidationError({KEY_DETAIL:e})
