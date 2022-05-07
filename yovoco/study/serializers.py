@@ -150,13 +150,13 @@ class QuizSerializer(serializers.ModelSerializer):
 		model=Quiz
 		fields=[KEY_ID, KEY_ANSWER1, KEY_ANSWER2, KEY_ANSWER3, \
 				KEY_CORRECT_ANSWER, KEY_QUESTION_TYPE]
-		# extra_kwargs={
-		# 	KEY_ANSWER1: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
-		# 	KEY_ANSWER2: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
-		# 	KEY_ANSWER3: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
-		# 	KEY_CORRECT_ANSWER: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
-		# 	KEY_QUESTION_TYPE: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True}
-		# }
+		extra_kwargs={
+			KEY_ANSWER1: {KEY_ALLOW_NULL: True},
+			KEY_ANSWER2: {KEY_ALLOW_NULL: True},
+			KEY_ANSWER3: {KEY_ALLOW_NULL: True},
+			KEY_CORRECT_ANSWER: {KEY_ALLOW_NULL: True},
+			KEY_QUESTION_TYPE: {KEY_ALLOW_NULL: True}
+		}
 
 	def get_question_type_random(self):
 		types = QuizType.members()
@@ -164,14 +164,11 @@ class QuizSerializer(serializers.ModelSerializer):
 
 	def get_correct_answer_random(self):
 		vocabularies = Vocabulary.objects.filter(deleted_by=None).all()
-		print('vocabularies: ', vocabularies)
 		vocabulary = random.choice(vocabularies)
-		print('vocabulary before: ', vocabulary)
 		return vocabulary
 
 	def get_answer_random(self, data):
 		correct_answer = data[KEY_CORRECT_ANSWER]
-		print('correct_answer: ', correct_answer)
 		answer1 = get_not_null_or_default(data.get(KEY_ANSWER1), Vocabulary(id=uuid.uuid4()))
 		answer2 = get_not_null_or_default(data.get(KEY_ANSWER2), Vocabulary(id=uuid.uuid4()))
 		answer3 = get_not_null_or_default(data.get(KEY_ANSWER3), Vocabulary(id=uuid.uuid4()))
@@ -211,7 +208,6 @@ class QuizSerializer(serializers.ModelSerializer):
 		
 	def save(self, **kwargs):
 		try:
-			print('instance',self.instance)
 			return super(QuizSerializer, self).save(**kwargs)
 		except Exception:
 			return {KEY_MESSAGE: MESSAGE_QUIZ_EXIST}

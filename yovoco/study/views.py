@@ -35,6 +35,15 @@ class QuizViewSet(CustomModelViewSet):
 		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: response.data}
 		return response
 
+	def list(self, request, *args, **kwargs):
+		response=super(CustomModelViewSet, self).list(request, *args, **kwargs)
+		results = []
+		for result in response.data[KEY_RESULTS]:
+			data = get_quiz_dto(result)
+			results.append(data)
+		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: results}
+		return response
+
 class QuizContentViewSet(CustomModelViewSet):
 	serializer_class=QuizContentSerializer
 	queryset=QuizContent.objects.all()
