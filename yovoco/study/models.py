@@ -1,5 +1,7 @@
 from calendar import c
 from math import fabs
+import re
+from winreg import REG_LEGAL_OPTION
 from django.db import models
 from entities.models import Vocabulary
 from yovoco.models import AuditModel, QuizType
@@ -49,12 +51,10 @@ class Quiz(AuditModel):
 	"""
 	Quiz
 	"""
-	question=models.CharField(max_length=200, blank=True, null=True)
-	answer1=models.CharField(max_length=50, default=VALUE_ANSWER_DEFAULT, blank=True, null=True)
-	answer2=models.CharField(max_length=50, default=VALUE_ANSWER_DEFAULT, blank=True, null=True)
-	answer3=models.CharField(max_length=50, default=VALUE_ANSWER_DEFAULT, blank=True, null=True)
-	vocabulary=models.ForeignKey(Vocabulary, on_delete=models.CASCADE)
-	correct_answer=models.CharField(max_length=50, blank=True, null=True)
+	answer1=models.ForeignKey(Vocabulary, on_delete=models.CASCADE, related_name=VALUE_ANSWER_1)
+	answer2=models.ForeignKey(Vocabulary, on_delete=models.CASCADE, related_name=VALUE_ANSWER_2)
+	answer3=models.ForeignKey(Vocabulary, on_delete=models.CASCADE, related_name=VALUE_ANSWER_3)
+	correct_answer=models.ForeignKey(Vocabulary, on_delete=models.CASCADE)
 	question_type=models.CharField(max_length=50, choices=QuizType.choices, default=QuizType.FIND_MEANING)
 	
 	class Meta:

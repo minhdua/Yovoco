@@ -74,8 +74,8 @@ class QuizType(TextChoices):
 	"""
 	QuizType
 	"""
-	FIND_MEANING='fm', 'Find Meaning'
-	FIND_WORD='fw', 'Find Word'
+	FIND_MEANING='fm', 'Find Meaning of word {}'
+	FIND_WORD='fw', 'Find \'Word\' has mean is {}'
 	FIND_WORD_MEANING='fwm', 'Find Word and Meaning'
 	FIND_WORD_FROM_IMAGE='fwi', 'Find Word from Image'
 	FIND_WORD_FROM_AUDIO='fwa', 'Find Word from Audio'

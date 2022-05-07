@@ -1,3 +1,4 @@
+import re
 from study.serializers import (LessonSerializer, 
 								LessonItemSerializer,
 								TestSerializer,
@@ -6,7 +7,8 @@ from study.serializers import (LessonSerializer,
 								LessonContentSerializer)
 from study.models import (Lesson, LessonItem, LessonContent, Test, Quiz, QuizContent)
 from entities.views import CustomModelViewSet
-
+from yovoco.constants import *
+from study.serializers import get_quiz_dto
 class LessonViewSet(CustomModelViewSet):
 	serializer_class=LessonSerializer
 	queryset=Lesson.objects.all()
@@ -26,6 +28,12 @@ class TestViewSet(CustomModelViewSet):
 class QuizViewSet(CustomModelViewSet):
 	serializer_class=QuizSerializer
 	queryset=Quiz.objects.all()
+ 
+	def retrieve(self, request, *args, **kwargs):
+		response=super(CustomModelViewSet, self).retrieve(request, *args, **kwargs)
+		response.data = get_quiz_dto(response.data)
+		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: response.data}
+		return response
 
 class QuizContentViewSet(CustomModelViewSet):
 	serializer_class=QuizContentSerializer

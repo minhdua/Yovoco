@@ -1,9 +1,12 @@
 from datetime import datetime
+from secrets import choice
 from statistics import quantiles
+from tkinter.messagebox import QUESTION
 from entities.models import Vocabulary
 from rest_framework import serializers
 from study.models import (Lesson, LessonItem, LessonContent, Test, Quiz, QuizContent, QuizType)
 from yovoco.constants import *
+from yovoco.utils import get_not_null_or_default
 import random, uuid
 class LessonSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -145,64 +148,37 @@ class TestSerializer(serializers.ModelSerializer):
 class QuizSerializer(serializers.ModelSerializer):
 	class Meta:
 		model=Quiz
-		fields=[KEY_ID, KEY_QUESTION, KEY_ANSWER1, KEY_ANSWER2, KEY_ANSWER3, \
-					KEY_VOCABULARY, KEY_CORRECT_ANSWER, KEY_QUESTION_TYPE]
-		extra_kwargs={
-			KEY_QUESTION: {KEY_READ_ONLY: True},
-			KEY_ANSWER1: {KEY_REQUIRED: False, KEY_ALLOW_NULL: True},
-			KEY_ANSWER2: {KEY_REQUIRED: False, KEY_ALLOW_NULL: True},
-			KEY_ANSWER3: {KEY_REQUIRED: False, KEY_ALLOW_NULL: True},
-			KEY_VOCABULARY: {KEY_REQUIRED: True, KEY_ALLOW_NULL: True},
-			KEY_CORRECT_ANSWER: {KEY_READ_ONLY: True},
-			KEY_QUESTION_TYPE: {KEY_REQUIRED: True, KEY_ALLOW_NULL: True},
-		}
+		fields=[KEY_ID, KEY_ANSWER1, KEY_ANSWER2, KEY_ANSWER3, \
+				KEY_CORRECT_ANSWER, KEY_QUESTION_TYPE]
+		# extra_kwargs={
+		# 	KEY_ANSWER1: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
+		# 	KEY_ANSWER2: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
+		# 	KEY_ANSWER3: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
+		# 	KEY_CORRECT_ANSWER: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True},
+		# 	KEY_QUESTION_TYPE: {KEY_WRITE_ONLY: True, KEY_ALLOW_NULL: True}
+		# }
 
-	def validate_vocabulary(self, value):
-		""" Validate vocabulary
+	def get_question_type_random(self):
+		types = QuizType.members()
+		return random.choice(types)
 
-		Args:
-			value (vocabulary): vocabulary need test
-
-		Raises:
-			serializers.ValidationError: if vocabulary is empty
-			serializers.ValidationError: if vocabulary is not exist
-
-		Returns:
-			vocabulary: vocabulary random if vocabulary is empty else return vocabulary exists or itself
-		"""
-		user=self.context.get(KEY_REQUEST).user
-		if not value:
-			vocabularies = Vocabulary.objects.filter(created_by=user, deleted_by=None)
-			try:
-				value = random.choice(vocabularies)
-			except IndexError:
-				raise serializers.ValidationError(MESSAGE_VALIDATION_VOCABULARIES_IS_EMPTY)
-		vocabulary_filter=Vocabulary.objects.filter(created_by=user, id=value.id, deleted_by=None)
-		if vocabulary_filter.exists():
-			value = vocabulary_filter.first()
-			return value
-		raise serializers.ValidationError(MESSAGE_VOCABULARY_NOT_EXIST)
-
-	def validate_question_type(self, value):
-		if not value:
-			types = QuizType.members()
-			value = random.choice(types)
-		return value
+	def get_correct_answer_random(self):
+		vocabularies = Vocabulary.objects.filter(deleted_by=None).all()
+		print('vocabularies: ', vocabularies)
+		vocabulary = random.choice(vocabularies)
+		print('vocabulary before: ', vocabulary)
+		return vocabulary
 
 	def get_answer_random(self, data):
-		vocabulary = data.get(KEY_VOCABULARY)
-		answer1 = data.get(KEY_ANSWER1)
-		answer2 = data.get(KEY_ANSWER2)
-		answer3 = data.get(KEY_ANSWER3)
-		question_type = data.get(KEY_QUESTION_TYPE)
-		if question_type == QuizType.FIND_WORD:
-			vocabularies_filter = Vocabulary.objects.filter(pos=vocabulary.pos).exclude(id=vocabulary.id).exclude(word=answer1)\
-										.exclude(word=answer2).exclude(word=answer3)
-			answers_random = [v.word for v in vocabularies_filter]
-		else :
-			vocabularies_filter = Vocabulary.objects.filter(pos=vocabulary.pos).exclude(id=vocabulary.id).exclude(meaning=answer1)\
-										.exclude(meaning=answer2).exclude(meaning=answer3)
-			answers_random = [v.meaning for v in vocabularies_filter]
+		correct_answer = data[KEY_CORRECT_ANSWER]
+		print('correct_answer: ', correct_answer)
+		answer1 = get_not_null_or_default(data.get(KEY_ANSWER1), Vocabulary(id=uuid.uuid4()))
+		answer2 = get_not_null_or_default(data.get(KEY_ANSWER2), Vocabulary(id=uuid.uuid4()))
+		answer3 = get_not_null_or_default(data.get(KEY_ANSWER3), Vocabulary(id=uuid.uuid4()))
+
+		vocabularies_filter = Vocabulary.objects.filter(pos=correct_answer.pos).exclude(id=correct_answer.id).exclude(id=answer1.id)\
+										.exclude(id=answer2.id).exclude(id=answer3.id).all()
+		answers_random = [v for v in vocabularies_filter]
 		try:
 			return random.choice(answers_random)
 		except IndexError:
@@ -217,25 +193,17 @@ class QuizSerializer(serializers.ModelSerializer):
 		Returns:
 			Quiz: if data is valid return data else return data with random quesion or answer
 		"""
-		vocabulary=data.get(KEY_VOCABULARY)
-		question_type=data.get(KEY_QUESTION_TYPE)
-		if question_type == QuizType.FIND_WORD:
-			data[KEY_QUESTION]=MESSAGE_FIND_WORD_HAS_MEANING.format(vocabulary.meaning)
-			data[KEY_CORRECT_ANSWER]=vocabulary.word
-		else:
-			data[KEY_QUESTION_TYPE]=QuizType.FIND_MEANING
-			data[KEY_QUESTION]=MESSAGE_FIND_MEANING_OF.format(vocabulary.word)
-			data[KEY_CORRECT_ANSWER]=vocabulary.meaning
-
 		user=self.context.get(KEY_REQUEST).user
-		question=data.get(KEY_QUESTION)
-		answer1=data[KEY_ANSWER1]=self.get_answer_random(data) if not data.get(KEY_ANSWER1) else data.get(KEY_ANSWER1)
-		answer2=data[KEY_ANSWER2]=self.get_answer_random(data) if not data.get(KEY_ANSWER2) else data.get(KEY_ANSWER2)
-		answer3=data[KEY_ANSWER3]=self.get_answer_random(data) if not data.get(KEY_ANSWER3) else data.get(KEY_ANSWER3)
+		question_type=data[KEY_QUESTION_TYPE]=data.get(KEY_QUESTION_TYPE, self.get_question_type_random())
+		correct_answer=data[KEY_CORRECT_ANSWER]=get_not_null_or_default(data.get(KEY_CORRECT_ANSWER),self.get_correct_answer_random())
+		answer1=data[KEY_ANSWER1]=get_not_null_or_default(data.get(KEY_ANSWER1), self.get_answer_random(data))
+		answer2=data[KEY_ANSWER2]=get_not_null_or_default(data.get(KEY_ANSWER2), self.get_answer_random(data))
+		answer3=data[KEY_ANSWER3]=get_not_null_or_default(data.get(KEY_ANSWER3), self.get_answer_random(data))
+		answers=[answer1, answer2, answer3]
+		answers.sort(key=lambda x: x.id)
 		instance=self.instance if self.instance else Quiz(id=uuid.uuid4())
-		quiz_find=Quiz.objects.filter(vocabulary=vocabulary, created_by=user,\
-									question=question, answer1=answer1,\
-									answer2=answer2, answer3=answer3)\
+		quiz_find=Quiz.objects.filter(correct_answer=correct_answer, created_by=user, answer1=answers[0],\
+									answer2=answers[1], answer3=answers[2], question_type=question_type)\
 									.exclude(deleted_by=user).exclude(id=instance.id)
 		if quiz_find.exists():
 			self.instance = quiz_find.first()
@@ -252,6 +220,8 @@ class QuizSerializer(serializers.ModelSerializer):
 		self.instance.answer1=data.get(KEY_ANSWER1, instance.answer1)
 		self.instance.answer2=data.get(KEY_ANSWER2, instance.answer2)
 		self.instance.answer3=data.get(KEY_ANSWER3, instance.answer3)
+		self.instance.correct_answer=data.get(KEY_CORRECT_ANSWER, instance.correct_answer)
+		self.instance.question_type=data.get(KEY_QUESTION_TYPE, instance.question_type)
 		self.instance.updated_by=self.context.get(KEY_REQUEST).user
 		self.instance.updated_at=datetime.now()
 		self.instance.save()
@@ -292,3 +262,35 @@ class QuizContentSerializer(serializers.ModelSerializer):
 	
 	def update(self, instance, data):
 		return self.instance
+
+class QuizDTO:
+	def __init__(self, id, question, choice1, choice2, choice3, choice4):
+		self.id=id
+		self.question=question
+		self.choice1=choice1
+		self.choice2=choice2
+		self.choice3=choice3
+		self.choice4=choice4
+
+def get_quiz_dto(quiz):
+	question_type = quiz.get(KEY_QUESTION_TYPE)
+	answer1 = Vocabulary.objects.get(id=quiz.get(KEY_ANSWER1))
+	answer2 = Vocabulary.objects.get(id=quiz.get(KEY_ANSWER2))
+	answer3 = Vocabulary.objects.get(id=quiz.get(KEY_ANSWER3))
+	correct_answer = Vocabulary.objects.get(id=quiz.get(KEY_CORRECT_ANSWER))
+
+	choices = [answer1, answer2, answer3, correct_answer]
+	random.shuffle(choices)
+	if (question_type == QuizType.FIND_WORD):
+		question = QuizType.FIND_WORD.label.format(correct_answer.meaning)
+		choice1 = choices[0].word
+		choice2 = choices[1].word
+		choice3 = choices[2].word
+		choice4 = choices[3].word
+	else:
+		question = QuizType.FIND_MEANING.label.format(correct_answer.word)
+		choice1 = choices[0].meaning
+		choice2 = choices[1].meaning
+		choice3 = choices[2].meaning
+		choice4 = choices[3].meaning
+	return QuizDTO(quiz.get(KEY_ID), question, choice1, choice2, choice3, choice4).__dict__
