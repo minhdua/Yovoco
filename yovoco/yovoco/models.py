@@ -57,18 +57,19 @@ class Language(TextChoices):
 	WELSH='cy', 'Welsh'
 
 class PartOfSpeech(TextChoices):
-	NOUN='noun'
-	VERB='verb'
-	ADJ='adjective'
-	ADV='adverb'
-	PRON='pronoun'
-	CONJ='conjunction'
-	DET='determiner'
-	PREP='preposition'
-	NUM='numeral'
-	INTERJ='interjection'
-	PRT='particle'
-	X='other'
+	N='noun', 'Noun'
+	V='verb', 'Verb'
+	ADJ='adjective', 'Adjective'
+	ADV='adverb', 'Adverb'
+	PRON='pronoun', 'Pronoun'
+	CONJ='conjunction', 'Conjunction'
+	DET='determiner', 'Determiner'
+	PREP='preposition', 'Preposition'
+	NUM='numeral', 'Numeral'
+	INTERJ='interjection', 'Interjection'
+	PRT='particle', 'Particle'
+	SYM='symbol', 'Symbol'
+	X='other', 'Other'
 
 class QuizType(TextChoices):
 	"""

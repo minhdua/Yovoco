@@ -5,7 +5,9 @@ from datetime import datetime
 from rest_framework import status
 from yovoco.constants import *
 from copy import deepcopy
-
+from rest_framework.decorators import api_view, permission_classes
+from yovoco.models import Language, PartOfSpeech, QuizType
+from rest_framework.response import Response
 class CustomModelViewSet(ModelViewSet):
 	filter_backends=(DjangoFilterBackend, SearchFilter, OrderingFilter)
 	ordering_fields=(KEY_ID,)
@@ -48,3 +50,29 @@ class CustomModelViewSet(ModelViewSet):
 		data=deepcopy(response.data)
 		response.data={KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: data}
 		return response
+
+def get_common_dto(members):
+	results = []
+	for member in members:
+		data = {
+			"name": member.name,
+			"value": member.value,
+			"label": member.label
+		}
+		results.append(data)
+	return results
+
+@api_view(['GET'])
+def language_list(request):
+	languages= Language.members()
+	return Response({KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: get_common_dto(languages)})
+
+@api_view(['GET'])
+def part_of_speech_list(request):
+	poses = PartOfSpeech.members()
+	return Response({KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: get_common_dto(poses)})
+
+@api_view(['GET'])
+def quiz_type_list(request):
+	quiz_types= QuizType.members()
+	return Response({KEY_DETAIL: MESSAGE_SUCCESS, KEY_RESULTS: get_common_dto(quiz_types)})

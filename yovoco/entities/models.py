@@ -24,7 +24,7 @@ class Vocabulary( AuditModel):
 	example=models.CharField(max_length=2000, blank=True, null=True)
 	phonetic=models.CharField(max_length=1000, blank=True, null=True)
 	audio=models.CharField(max_length=1000, blank=True, null=True)
-	pos=models.CharField(max_length=50, choices=PartOfSpeech.choices, default=PartOfSpeech.NOUN)
+	pos=models.CharField(max_length=50, choices=PartOfSpeech.choices, default=PartOfSpeech.N)
 	language=models.CharField(max_length=20, choices=Language.choices, default=Language.ENGLISH)
 	collection=models.ForeignKey(Collection, on_delete=models.CASCADE, \
 											related_name=KEY_VOCABULARY, blank=True, null=True)
