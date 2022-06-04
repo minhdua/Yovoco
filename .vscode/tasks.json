@@ -4,9 +4,14 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "active environment",
+            "label": "start backend",
             "type": "shell",
-            "command": "source yovoco/yovoco/.env; source yovoco/venv02/Scripts/activate"
+            "command": "cd backend; source yovoco/.env; source venv/Scripts/activate; python manage.py runserver",
+        },
+        {
+            "label": "start web",
+            "type": "shell",
+            "command": "cd web; npm start",
         }
     ]
 }

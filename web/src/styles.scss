@@ -1,0 +1,12 @@
+@import 'app/styles/style-normalize';
+@import 'app/styles/style-colors';
+@import 'app/styles/style-typography';
+@import 'app/styles/style-dimensions';
+@import 'primeflex/primeflex.scss';
+
+.main {
+  background-color: $bgColorLight02;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
