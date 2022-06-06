@@ -9,6 +9,7 @@ import { RouterModule } from '@angular/router';
 import { ComponentsRoutingModule } from './components-routing.module';
 import { SignupComponent } from './signup/signup.component';
 import { LoginComponent } from './login/login.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [SignupComponent, LoginComponent],
@@ -22,7 +23,9 @@ import { LoginComponent } from './login/login.component';
     FormsModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    HttpClientModule,
   ],
   exports: [],
+  providers: [],
 })
 export class ComponentsModule {}

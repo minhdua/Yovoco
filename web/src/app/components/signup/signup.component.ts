@@ -1,5 +1,7 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 
 const BACKEND_URL = environment.apiUrl + '/user/';
@@ -11,15 +13,18 @@ const BACKEND_URL = environment.apiUrl + '/user/';
   styleUrls: ['./signup.component.scss'],
 })
 export class SignupComponent implements OnInit {
-  isLoggedin: boolean = false;
+  isLoggedIn: boolean = false;
   passLength: number = 0;
   checkPassword: boolean = true;
   checkEmail: boolean = false;
-  emailFailed: boolean = false;
-  waitingMsg: boolean = false;
-  constructor() {}
+  emailFailed:boolean = false;
+  waitingMsg:boolean = false;
+  // alertMsg: boolean = false;
+  constructor(private http: HttpClient, private route: Router) {
 
-  ngOnInit() {}
+  }
+
+  ngOnInit(): void {}
 
   signupForm = new FormGroup({
     username: new FormControl(null, [
@@ -33,18 +38,8 @@ export class SignupComponent implements OnInit {
       Validators.email,
       Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'),
     ]),
-    password: new FormControl(null, [
-      Validators.required,
-      Validators.pattern(
-        '^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$'
-      ),
-    ]),
-    reenter: new FormControl(null, [
-      Validators.required,
-      Validators.pattern(
-        '^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$'
-      ),
-    ]),
+    password: new FormControl(null, [Validators.required,Validators.pattern('^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$')]),
+    reenter: new FormControl(null, [Validators.required,Validators.pattern('^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$')]),
   });
 
   async onSubmit() {
@@ -56,7 +51,7 @@ export class SignupComponent implements OnInit {
       }, 3000);
     } else {
       var checkUserExists: any = await this.http
-        .get(BACKEND_URL + 'checkSignUp/' + this.signupForm.value.email)
+        .post(BACKEND_URL + 'registration/', this.signupForm.value)
         .toPromise();
 
       if (checkUserExists.result == 'true') {
@@ -69,5 +64,50 @@ export class SignupComponent implements OnInit {
         this.checkingUserData();
       }
     }
+  }
+
+  checkingUserData() {
+    this.checkEmail = false;
+    this.checkPassword = true;
+
+    this.saveDataInDb(this.signupForm.value);
+    this.signupForm.reset();
+  }
+
+  findPassLength(password:any) {
+    this.passLength = password.length;
+  }
+
+  get username() {
+    return this.signupForm.get('username');
+  }
+  get email() {
+    return this.signupForm.get('email');
+  }
+  get password() {
+    return this.signupForm.get('password');
+  }
+  get reenter() {
+    return this.signupForm.get('reenter');
+  }
+
+  async saveDataInDb(getData: any) {
+
+    var result:any = await this.http
+      .post(BACKEND_URL + 'userSignUp', getData, { responseType: 'text' })
+      .toPromise();
+      var results = JSON.parse(result)
+      if(results.message == "true"){
+        this.emailFailed = true;
+        setTimeout(()=> {
+          this.emailFailed = false;
+        },10000);
+      }else {
+        this.waitingMsg = true;
+      }
+  }
+
+  ngOnDestroy(): void {
+      this.waitingMsg = false;
   }
 }

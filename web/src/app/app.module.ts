@@ -12,6 +12,7 @@ import { AddVocabularyComponent } from './components/vocabulary/add/add.componen
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LayoutComponent } from './components/layout/layout.component';
 import { ComponentsModule } from './components/components.module';
+import { HttpClientModule } from '@angular/common/http';
 @NgModule({
   declarations: [
     AppComponent,
@@ -30,6 +31,7 @@ import { ComponentsModule } from './components/components.module';
     FormsModule,
     ReactiveFormsModule,
     ComponentsModule,
+
   ],
   providers: [],
   bootstrap: [AppComponent],

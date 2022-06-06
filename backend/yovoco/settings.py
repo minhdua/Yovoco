@@ -26,7 +26,8 @@ SECRET_KEY=os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=True
 
-ALLOWED_HOSTS=[]
+ALLOWED_HOSTS=['*']
+CORS_ORIGIN_ALLOW_ALL=True
 
 # HOST SERVER
 SERVER_NAME='Yovoco'
@@ -47,6 +48,7 @@ INSTALLED_APPS=[
 	'rest_framework',
 	'rest_framework_simplejwt',
 	'rest_framework_simplejwt.token_blacklist',
+ 	'corsheaders',
 	'users',
 	'entities',
 	'study',
@@ -100,6 +102,7 @@ MIDDLEWARE=[
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF='yovoco.urls'
