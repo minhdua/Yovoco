@@ -3,6 +3,7 @@
         "corsheaders",
         "djongo",
         "exemp",
+        "fullmatch",
         "mdpassw",
         "minhdua",
         "myenglish",

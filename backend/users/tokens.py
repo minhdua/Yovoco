@@ -54,7 +54,7 @@ class ResetPasswordToken(tokens.RefreshToken):
 		user.password_reset.save()
 		return token
 
-def get_verifytoken_for_user(user):
+def get_verify_token_for_user(user):
 	"""
 	Returns a token for a given user.
 	"""

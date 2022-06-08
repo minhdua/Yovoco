@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from datetime import datetime
-from sqlite3 import paramstyle
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.db import transaction
@@ -11,29 +10,6 @@ import re
 from users import models, response, tokens , utils
 from yovoco.constants import *
 
-
-
-def validate_password(value):
-	if len(value) < VALUE_VALIDATION_PASSWORD_MIN_LENGTH:
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_LEAST_CHARACTER)
-	if len(value) > VALUE_VALIDATION_PASSWORD_MAX_LENGTH:
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_MOST_CHARACTER)
-	if not any(char.isdigit() for char in value):
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_DIGIT)
-	if not any(char.isupper() for char in value):
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_UPPERCASE)
-	if not any(char.islower() for char in value):
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_LOWERCASE)
-	if any(not char.isalnum() for char in value):
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_CONTAIN_SPECIAL_CHARACTER)
-	return value
-
-def check_email_exists(email):
-	users=models.CustomUser.objects.filter(email=email)
-	for user in users:
-		if user.verified_email.get(KEY_IS_VERIFIED,False):
-			return True
-	return False
 
 def get_body_verification_mail(username, hostname, key):
 	return f'''
@@ -74,28 +50,74 @@ class ProfileSerializer(NonNullModelSerializer):
 	def get(self):
 		return response.ResultResponse(MESSAGE_GET_PROFILE_SUCCESS, data=self.data).get_response
 
+def validate_password(value):
+	'''
+	Validate password
+		required: true
+		min_length: 8
+		max_length: 20
+		regex: digits, upper, lower, not special
+	'''
+	if value is None:
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_REQUIRED)
+	if len(value) < VALUE_VALIDATION_PASSWORD_MIN_LENGTH:
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_LEAST_CHARACTER)
+	if len(value) > VALUE_VALIDATION_PASSWORD_MAX_LENGTH:
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_MOST_CHARACTER)
+	if not any(char.isdigit() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_DIGIT)
+	if not any(char.isupper() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_UPPERCASE)
+	if not any(char.islower() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_LOWERCASE)
+	if any(not char.isalnum() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_CONTAIN_SPECIAL_CHARACTER)
+	return value
+
+def check_email_exists(email):
+	"""
+	Check if email exists in database
+	exclude email verified
+	"""
+	users=models.CustomUser.objects.filter(email=email)
+	for user in users:
+		if user.verified_email.get(KEY_IS_VERIFIED,False):
+			return True
+	return False
+
+def check_mobile_number_exists(mobile_number):
+	"""
+	Check if mobile number exists in database
+	exclude mobile number verified
+	"""
+	users=models.CustomUser.objects.filter(mobile_number=mobile_number)
+	for user in users:
+		if user.verified_mobile_number.get(KEY_IS_VERIFIED,False):
+			return True
+	return False
 class RegistrationSerializer(NonNullModelSerializer):
 	'''
 	Registration serializer
 	Register user and send verification email.
 	'''
 
-	password2=serializers.CharField(style={KEY_INPUT_TYPE: VALUE_PASSWORD}, write_only=True)
-	token=serializers.CharField(read_only=True)
+	password2=serializers.CharField(style={KEY_INPUT_TYPE: VALUE_PASSWORD}, write_only=True, allow_null=True)
 	class Meta:
 		model=models.CustomUser
-		fields=[KEY_USERNAME, KEY_EMAIL, KEY_TOKEN, KEY_PASSWORD, KEY_PASSWORD2]
-		extra_kwargs={
-			KEY_USERNAME: {KEY_REQUIRED: True},
-			KEY_EMAIL: {KEY_REQUIRED: True},
-			KEY_PASSWORD: {KEY_REQUIRED: True},
-			KEY_PASSWORD2: {KEY_REQUIRED: True},
-		}
+		fields=[KEY_USERNAME, KEY_EMAIL, KEY_MOBILE_NUMBER, KEY_PASSWORD, KEY_PASSWORD2]
+  
 
 	def validate_username(self, value):
 		'''
-		validate username. 
+		validate username.
+			required: true
+			min_length: 5
+			max_length: 20
+			regex: contains at least one lowercase letter, one uppercase letter, and one digit
+			unique: true
 		'''
+		if value is None:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_REQUIRED)
 		if len(value) < VALUE_VALIDATION_USERNAME_MIN_LENGTH:
 			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_LEAST_CHARACTER)
 		if len(value) > VALUE_VALIDATION_USERNAME_MAX_LENGTH:
@@ -111,7 +133,14 @@ class RegistrationSerializer(NonNullModelSerializer):
 	def validate_email(self, value):
 		'''
 		validate email.
+			required: true
+			unique: true
+			min_length: 5
+			max_length: 50
+			regex: email
 		'''
+		if value is None:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_EMAIL_REQUIRED)
 		if len(value) < VALUE_VALIDATION_EMAIL_MIN_LENGTH:
 			raise serializers.ValidationError(MESSAGE_VALIDATION_EMAIL_LEAST_CHARACTER)
 		if len(value) > VALUE_VALIDATION_EMAIL_MAX_LENGTH:
@@ -125,10 +154,19 @@ class RegistrationSerializer(NonNullModelSerializer):
 	def validate_mobile_number(self, value):
 		'''
 		validate mobile number.
+			required: true
+			unique: true
+			min_length: 10
+			max_length: 10
+			regex: digits
 		'''
-		if not re.fullmatch(VALUE_VALIDATION_MOBILENUMBER_REGEX, value):
-			raise serializers.ValidationError(MESSAGE_MOBILENUMBER_INVALID)
-		if models.CustomUser.objects.filter(mobile_number=value).exists():
+		if value is None:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_MOBILE_NUMBER_REQUIRED)
+		if len(value) < VALUE_VALIDATION_MOBILE_NUMBER_LENGTH and len(value) > VALUE_VALIDATION_MOBILE_NUMBER_LENGTH:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_MOBILE_NUMBER_LENGTH)
+		if not re.fullmatch(VALUE_VALIDATION_MOBILE_NUMBER_REGEX, value):
+			raise serializers.ValidationError(MESSAGE_MOBILE_NUMBER_INVALID)
+		if check_mobile_number_exists(value):
 			raise serializers.ValidationError(MESSAGE_MOBILE_NUMBER_EXIST)
 		return value
 
@@ -137,6 +175,14 @@ class RegistrationSerializer(NonNullModelSerializer):
 		validate password.
 		'''
 		return validate_password(value)
+
+	def validate_password2(self, value):
+		'''
+		validate password.
+		'''
+		if value is None:
+			raise serializers.ValidationError(MESSAGE_VALIDATION_REPEAT_PASSWORD_REQUIRED)
+		return value
 
 	@transaction.atomic
 	def save(self):
@@ -149,8 +195,10 @@ class RegistrationSerializer(NonNullModelSerializer):
 		user=models.CustomUser(email=email, username=username)
 		password=self.validated_data.get(KEY_PASSWORD)
 		password2=self.validated_data.get(KEY_PASSWORD2)
+		
+  
 		if password != password2:
-			raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_MATCH)
+			raise serializers.ValidationError({"password2":[MESSAGE_VALIDATION_PASSWORD_NOT_MATCH]})
 		user.set_password(password)
 		user.save()
 		return self.send_verification_email(user)
@@ -161,7 +209,7 @@ class RegistrationSerializer(NonNullModelSerializer):
 		'''
 		subject=get_subject_verification_mail()
 		current_site=settings.SERVER_HOST
-		token=tokens.get_verifytoken_for_user(user).get(KEY_ACCESS)
+		token=tokens.get_verify_token_for_user(user).get(KEY_ACCESS)
 		key_encrypted=utils.encrypt_message(token)
 		mail_body=get_body_verification_mail(user.username, current_site, key_encrypted)
 		utils.send_email(subject, mail_body, user.email)
@@ -248,7 +296,7 @@ class ReverifyMailSerializer(serializers.Serializer):
 			user.save()
 		subject=get_subject_verification_mail()
 		current_site=settings.SERVER_HOST
-		token=tokens.get_verifytoken_for_user(user).get(KEY_ACCESS)
+		token=tokens.get_verify_token_for_user(user).get(KEY_ACCESS)
 		key_encrypted=utils.encrypt_message(token)
 		mail_body=get_body_verification_mail(user.username, current_site, key_encrypted)
 		utils.send_email(subject, mail_body, user.email)

@@ -1,6 +1,7 @@
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from yovoco.models import Language
 
-class LanguageSerializer(serializers.ModelSerializer):
+class LanguageSerializer(ModelSerializer):
     class Meta:
-    model=Language
+        model=Language
+        

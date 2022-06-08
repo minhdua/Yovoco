@@ -2,9 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 
-const BACKEND_URL = environment.apiUrl + '/user/';
 
 // https://github.com/yash2880/hari/blob/ebe3e9a1a7/src/app/components/pages/signup/signup.component.ts
 @Component({
@@ -13,6 +12,9 @@ const BACKEND_URL = environment.apiUrl + '/user/';
   styleUrls: ['./signup.component.scss'],
 })
 export class SignupComponent implements OnInit {
+
+  hasError: boolean = false;
+  errors: any = {};
   isLoggedIn: boolean = false;
   passLength: number = 0;
   checkPassword: boolean = true;
@@ -20,11 +22,12 @@ export class SignupComponent implements OnInit {
   emailFailed:boolean = false;
   waitingMsg:boolean = false;
   // alertMsg: boolean = false;
-  constructor(private http: HttpClient, private route: Router) {
+  constructor(private http: HttpClient,private authService: AuthenticationService, private route: Router) {
 
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   signupForm = new FormGroup({
     username: new FormControl(null, [
@@ -38,76 +41,41 @@ export class SignupComponent implements OnInit {
       Validators.email,
       Validators.pattern('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$'),
     ]),
+    'mobile_number': new FormControl(null, [ 
+      Validators.required, 
+      Validators.pattern('^[0-9]{10}$'), 
+      Validators.minLength(10), Validators.maxLength(10)
+    ]),
     password: new FormControl(null, [Validators.required,Validators.pattern('^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$')]),
-    reenter: new FormControl(null, [Validators.required,Validators.pattern('^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$')]),
+    password2: new FormControl(null, [Validators.required,Validators.pattern('^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$')]),
   });
 
-  async onSubmit() {
-    if (this.signupForm.value.password != this.signupForm.value.reenter) {
-      // this.alertMsg = false;
-      this.checkPassword = false;
-      setTimeout(() => {
-        this.checkPassword = true;
-      }, 3000);
-    } else {
-      var checkUserExists: any = await this.http
-        .post(BACKEND_URL + 'registration/', this.signupForm.value)
-        .toPromise();
-
-      if (checkUserExists.result == 'true') {
-        this.checkEmail = true;
-        setTimeout(() => {
-          this.checkEmail = false;
-        }, 5000);
-        this.signupForm.reset();
-      } else if (checkUserExists.result == 'false') {
-        this.checkingUserData();
-      }
+  keyPress(event: any) {
+    const pattern = /[0-9]/;
+    let inputChar = String.fromCharCode(event.charCode);
+    if (event.keyCode != 8 && !pattern.test(inputChar)) {
+      event.preventDefault();
     }
   }
 
-  checkingUserData() {
-    this.checkEmail = false;
-    this.checkPassword = true;
-
-    this.saveDataInDb(this.signupForm.value);
-    this.signupForm.reset();
-  }
-
-  findPassLength(password:any) {
-    this.passLength = password.length;
-  }
-
-  get username() {
-    return this.signupForm.get('username');
-  }
-  get email() {
-    return this.signupForm.get('email');
-  }
-  get password() {
-    return this.signupForm.get('password');
-  }
-  get reenter() {
-    return this.signupForm.get('reenter');
-  }
-
-  async saveDataInDb(getData: any) {
-
-    var result:any = await this.http
-      .post(BACKEND_URL + 'userSignUp', getData, { responseType: 'text' })
-      .toPromise();
-      var results = JSON.parse(result)
-      if(results.message == "true"){
-        this.emailFailed = true;
-        setTimeout(()=> {
-          this.emailFailed = false;
-        },10000);
-      }else {
+  async onSubmit() {
+    this.authService.signup(this.signupForm.value).subscribe({
+      next: (data) => {
+        console.log(data);
         this.waitingMsg = true;
+        setTimeout(() => {
+          this.waitingMsg = false;
+          this.route.navigate(['/login']);
+        }
+        , 3000);
+      },
+      error: (err) => {
+        this.hasError = true;
+        this.errors = err.error;
+        if (err.status == 400) {
+          console.log(typeof(this.errors),this.errors);
+        }
       }
-  }
-
-  ngOnDestroy(): void {
-      this.waitingMsg = false;
+    });
   }
 }

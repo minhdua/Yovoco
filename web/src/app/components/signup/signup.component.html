@@ -6,12 +6,43 @@
     </p>
 
     <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-      <input placeholder="Username" type="text" />
+      <div *ngIf="hasError" class="error">
+        <div *ngFor="let error of errors['username'] ">
+          {{error}}
+        </div>
+      </div>
+      <input placeholder="Username" type="text" formControlName="username">
 
-      <input placeholder="Email" type="text" />
+      <div *ngIf="hasError" class="error">
+        <div *ngFor="let error of errors['email'] ">
+          {{error}}
+        </div>
+      </div>
+      <input placeholder="Email" type="text" formControlName="email">
 
-      <input placeholder="Password" type="password" />
+      <div *ngIf="hasError" class="error">
+        <div *ngFor="let error of errors['mobile_number'] ">
+          {{error}}
+        </div>
+      </div>
+      <input placeholder="Mobile Number" 
+      (keypress)="keyPress($event)" 
+      maxlength="10"
+      type="text" formControlName="mobile_number">
 
+      <div *ngIf="hasError" class="error">
+        <div *ngFor="let error of errors['password'] ">
+          {{error}}
+        </div>
+      </div>
+      <input placeholder="Password" type="password" formControlName="password" >
+
+      <div *ngIf="hasError" class="error">
+        <div *ngFor="let error of errors['password2'] ">
+          {{error}}
+        </div>
+      </div>
+      <input placeholder="Repeat Password" type="password" formControlName="password2" >
       <button type="submit">Sign Up</button>
     </form>
   </div>
