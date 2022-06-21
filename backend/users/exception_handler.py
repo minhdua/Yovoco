@@ -7,6 +7,7 @@ def custom_exception_handler(exc, context):
 	# to get the standard error response.
 	response=exception_handler(exc, context)
 	# Now add the HTTP status code to the response.
+	print('response', response)
 	if response:
 		if type(response.data) is not dict:
 			response.data={KEY_DETAIL: response.data}

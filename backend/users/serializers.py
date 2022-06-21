@@ -70,8 +70,8 @@ def validate_password(value):
 		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_UPPERCASE)
 	if not any(char.islower() for char in value):
 		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_LOWERCASE)
-	if any(not char.isalnum() for char in value):
-		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_CONTAIN_SPECIAL_CHARACTER)
+	if not any(not char.isalnum() for char in value):
+		raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_CONTAIN_SPECIAL_CHARACTER)
 	return value
 
 def check_email_exists(email):
@@ -113,7 +113,7 @@ class RegistrationSerializer(NonNullModelSerializer):
 			required: true
 			min_length: 5
 			max_length: 20
-			regex: contains at least one lowercase letter, one uppercase letter, and one digit
+			regex: contains at least one lowercase letter, one uppercase letter, and one digit, no special characters
 			unique: true
 		'''
 		if value is None:
@@ -126,8 +126,6 @@ class RegistrationSerializer(NonNullModelSerializer):
 			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_CONTAIN_LETTER_AND_DIGIT)
 		if not value.isalnum():
 			raise serializers.ValidationError(MESSAGE_VALIDATION_USERNAME_NOT_CONTAIN_SPECIAL_CHARACTER)
-		if models.CustomUser.objects.filter(username=value).exists():
-			raise serializers.ValidationError(MESSAGE_USERNAME_EXIST)
 		return value
 
 	def validate_email(self, value):
@@ -198,10 +196,15 @@ class RegistrationSerializer(NonNullModelSerializer):
 		
   
 		if password != password2:
-			raise serializers.ValidationError({"password2":[MESSAGE_VALIDATION_PASSWORD_NOT_MATCH]})
+			raise serializers.ValidationError(MESSAGE_VALIDATION_PASSWORD_NOT_MATCH)
+
+		if models.CustomUser.objects.filter(username=username).exists():
+			raise serializers.ValidationError(MESSAGE_USERNAME_EXIST)
+
 		user.set_password(password)
 		user.save()
-		return self.send_verification_email(user)
+		#return self.send_verification_email(user)
+		return {KEY_USERNAME: user.username, KEY_EMAIL: user.email}
 
 	def send_verification_email(self, user):
 		'''

@@ -36,38 +36,10 @@
               }
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/purple-green.css",
-              "src/styles.scss",
-              {
-                "input": "node_modules/@ionic/angular/css/core.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/normalize.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/structure.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/typography.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/display.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/padding.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/float-elements.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/text-alignment.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/text-transformation.css"
-              },
-              {
-                "input": "node_modules/@ionic/angular/css/flex-utils.css"
-              },
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/primeng/resources/themes/lara-light-blue/theme.css",
+              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/primeflex/primeflex.css",
               {
                 "input": "src/theme/variables.css"
               }
@@ -143,7 +115,7 @@
               }
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/purple-green.css",
+              "node_modules/primeflex/primeflex.css",
               "src/styles.scss"
             ],
             "scripts": []

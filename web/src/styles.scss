@@ -2,11 +2,18 @@
 @import 'app/styles/style-colors';
 @import 'app/styles/style-typography';
 @import 'app/styles/style-dimensions';
-@import 'primeflex/primeflex.scss';
+// html,
+// body {
+//   height: 100%;
+//   background: $bgColorLight02;
+// }
+// body {
+//   margin: 0;
+//   font-family: Roboto, 'Helvetica Neue', sans-serif;
+// }
+// .main {
+//   background-color: $bgColorLight02;
+// }
 
-.main {
-  background-color: $bgColorLight02;
-}
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+// html, body { height: 100%; }
+// body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

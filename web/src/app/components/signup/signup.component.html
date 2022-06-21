@@ -1,49 +1,44 @@
-<div class="content">
-  <div>
-    <h1 class="title">Sign Up</h1>
-    <p>
-      <a style="color: rgb(185, 185, 185)" href="/login">Have an account?</a>
-    </p>
-
-    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-      <div *ngIf="hasError" class="error">
-        <div *ngFor="let error of errors['username'] ">
-          {{error}}
-        </div>
-      </div>
-      <input placeholder="Username" type="text" formControlName="username">
-
-      <div *ngIf="hasError" class="error">
-        <div *ngFor="let error of errors['email'] ">
-          {{error}}
-        </div>
-      </div>
-      <input placeholder="Email" type="text" formControlName="email">
-
-      <div *ngIf="hasError" class="error">
-        <div *ngFor="let error of errors['mobile_number'] ">
-          {{error}}
-        </div>
-      </div>
-      <input placeholder="Mobile Number" 
-      (keypress)="keyPress($event)" 
-      maxlength="10"
-      type="text" formControlName="mobile_number">
-
-      <div *ngIf="hasError" class="error">
-        <div *ngFor="let error of errors['password'] ">
-          {{error}}
-        </div>
-      </div>
-      <input placeholder="Password" type="password" formControlName="password" >
-
-      <div *ngIf="hasError" class="error">
-        <div *ngFor="let error of errors['password2'] ">
-          {{error}}
-        </div>
-      </div>
-      <input placeholder="Repeat Password" type="password" formControlName="password2" >
-      <button type="submit">Sign Up</button>
-    </form>
-  </div>
-</div>
+<p-card header="Sign Up" subheader="Welcome to Yovoco" [style]="{ width: '400px' }" styleClass="p-card-shadow">
+  <form [formGroup]="signupForm">
+    <div class="field">
+      <span class="p-float-label">
+        <input id="float-input" type="text" pInputText formControlName="username" required />
+        <label for="float-input">Username</label>
+      </span>
+    </div>
+    <div class="field">
+      <span class="p-float-label">
+        <input id="float-input" type="text" pInputText formControlName="email" />
+        <label for="float-input">Email</label>
+      </span>
+    </div>
+    <div class="field">
+      <span class="p-float-label">
+        <input
+          id="float-input"
+          type="text"
+          pInputText
+          formControlName="mobile_number"
+          maxlength="10"
+          onkeypress="return event.charCode >= 48 && event.charCode <= 57" />
+        <label for="float-input">Phone</label>
+      </span>
+    </div>
+    <div class="field mb-3">
+      <span class="p-float-label">
+        <input id="float-input" type="password" pInputText formControlName="password" />
+        <label for="float-input">Password</label>
+      </span>
+    </div>
+    <div class="field mb-3">
+      <span class="p-float-label">
+        <input id="float-input" style="width: 100%" type="password" pInputText formControlName="password2" />
+        <label for="float-input">Confirm Password</label>
+      </span>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Submit" icon="pi pi-check" (click)="onSubmit()"></p-button>
+  </ng-template>
+</p-card>
+<p-toast></p-toast>

@@ -7,12 +7,11 @@ import { HomeComponent } from './components/home/home.component';
 import { HeaderComponent } from './components/header/header.component';
 import { NavigationBarComponent } from './components/navigation-bar/navigation-bar.component';
 import { MainComponent } from './components/main/main.component';
-import { IonicModule } from '@ionic/angular';
 import { AddVocabularyComponent } from './components/vocabulary/add/add.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LayoutComponent } from './components/layout/layout.component';
 import { ComponentsModule } from './components/components.module';
-import { HttpClientModule } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 @NgModule({
   declarations: [
     AppComponent,
@@ -27,11 +26,10 @@ import { HttpClientModule } from '@angular/common/http';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    IonicModule.forRoot(),
     FormsModule,
     ReactiveFormsModule,
     ComponentsModule,
-
+    BrowserAnimationsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

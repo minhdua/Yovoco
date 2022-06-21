@@ -4,11 +4,14 @@
         "djongo",
         "exemp",
         "fullmatch",
+        "maxlength",
         "mdpassw",
         "minhdua",
         "myenglish",
         "NOSQL",
         "simplejwt",
         "yovoco"
-    ]
+    ],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
 }
