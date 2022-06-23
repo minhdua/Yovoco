@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Message, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import {
   EMAIL_ERROR_MESSAGE,
   EMAIL_MAX_LENGTH,
@@ -41,7 +41,6 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 })
 export class SignupComponent implements OnInit {
   signupForm: FormGroup;
-  errorMessage = '';
   constructor(
     private fb: FormBuilder,
     private authService: AuthenticationService,
@@ -94,7 +93,6 @@ export class SignupComponent implements OnInit {
   setErrorMessage(field: AbstractControl, error: string, errorMessage: string) {
     this.messageService.clear();
     if (field.hasError(error)) {
-      this.errorMessage = errorMessage;
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -151,16 +149,12 @@ export class SignupComponent implements OnInit {
     var password2 = this.signupForm.controls.password2;
     var isNotBlank = this.setErrorMessage(password2, 'required', PASSWORD2_ERROR_MESSAGE);
     if (isNotBlank && password.value !== password2.value) {
-      this.errorMessage = PASSWORD2_NOT_MATCH_ERROR_MESSAGE;
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
         detail: PASSWORD2_NOT_MATCH_ERROR_MESSAGE,
       });
       return false;
-    }
-    if (this.errorMessage === PASSWORD2_NOT_MATCH_ERROR_MESSAGE) {
-      this.messageService.clear();
     }
     return isNotBlank;
   }
@@ -177,7 +171,7 @@ export class SignupComponent implements OnInit {
 
   onSubmit() {
     if (this.validateData()) {
-      this.authService.signup(this.signupForm.value).subscribe({
+      this.authService.register(this.signupForm.value).subscribe({
         error: err => {
           for (const k in err.error) {
             this.messageService.add({
