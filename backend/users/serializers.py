@@ -535,7 +535,7 @@ class LogoutEverywhereSerializer(serializers.Serializer):
 		status_code=status.HTTP_205_RESET_CONTENT).get_response
 		
 class RefreshTokenSerializer(serializers.Serializer):
-	refresh_token=serializers.CharField(required=True)
+	refresh=serializers.CharField(required=True)
 
 	def validate(self, data):
 		self.token=data.get(KEY_REFRESH_TOKEN)

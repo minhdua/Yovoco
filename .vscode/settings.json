@@ -9,9 +9,13 @@
         "minhdua",
         "myenglish",
         "NOSQL",
+        "signin",
         "simplejwt",
         "yovoco"
     ],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python"
+    }
 }

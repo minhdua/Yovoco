@@ -10,9 +10,11 @@ import { MessageService } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
 import { MessagesModule } from 'primeng/messages';
 import { ToastModule } from 'primeng/toast';
-import { VocabularyComponent } from './vocabulary.component';
+import { VocabularyListComponent } from './vocabulary/list/list.component';
+import { TableModule } from 'primeng/table';
+import { CollectionRoutingModule } from './collection-routing.module';
 @NgModule({
-  declarations: [VocabularyComponent],
+  declarations: [VocabularyListComponent],
   imports: [
     CommonModule,
     RouterModule,
@@ -25,6 +27,8 @@ import { VocabularyComponent } from './vocabulary.component';
     MessageModule,
     MessagesModule,
     ToastModule,
+    TableModule,
+    CollectionRoutingModule,
   ],
   exports: [],
   providers: [MessageService],

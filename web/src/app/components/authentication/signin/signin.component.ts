@@ -75,7 +75,7 @@ export class SigninComponent implements OnInit {
           }
         },
         complete: () => {
-          this.route.navigate(['/login']);
+          this.route.navigate(['collection/vocabulary']);
         },
       });
     }

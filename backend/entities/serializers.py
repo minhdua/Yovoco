@@ -3,6 +3,7 @@ from entities.models import Collection, Vocabulary
 from rest_framework import serializers
 import requests
 from yovoco.constants import *
+from users.response import ResultResponse
 import uuid
 class CollectionSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -177,3 +178,18 @@ class VocabularySerializer(serializers.ModelSerializer):
 		self.instance.language=data.get(KEY_LANGUAGE, instance.language)
 		self.instance.save()
 		return self.instance
+
+	def filter_queryset(self, queryset):
+		return queryset.filter()
+
+	def get_queryset(self):
+		return Vocabulary.objects.all()
+
+	def get_serializer(self, *args, **kwargs):
+			return VocabularySerializer(*args, **kwargs)
+  
+	def list(self, request, *args, **kwargs):
+		queryset=self.filter_queryset(self.get_queryset())
+		serializer=self.get_serializer(queryset, many=True)
+		return ResultResponse(detail=MESSAGE_SUCCESS,data=serializer.data).get_response
+

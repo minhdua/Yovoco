@@ -12,14 +12,14 @@ import { MessageModule } from 'primeng/message';
 import { MessagesModule } from 'primeng/messages';
 import { ToastModule } from 'primeng/toast';
 import { SigninComponent } from './signin/signin.component';
-import { ComponentsRoutingModule } from './authentication-routing.module';
+import { AuthenticationRoutingModule } from './authentication-routing.module';
 @NgModule({
   declarations: [SignupComponent, SigninComponent],
   imports: [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    ComponentsRoutingModule,
+    AuthenticationRoutingModule,
     FormsModule,
     HttpClientModule,
     CardModule,
