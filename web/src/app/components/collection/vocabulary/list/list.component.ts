@@ -1,56 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { VocabularyService } from 'src/app/services/vocabulary.service';
-
-class Customer {
-  name: string;
-  country: string;
-  company: string;
-  representative: string;
-
-  constructor(name: string, country: string, company: string, representative: string) {
-    this.name = name;
-    this.country = country;
-    this.company = company;
-    this.representative = representative;
-  }
-}
-
-class Vocabulary {
-  id: string;
-  word: string;
-  meaning: string;
-  example: string;
-  phonetic: string;
-  audio: string;
-  pos: string;
-  language: string;
-  collection: string;
-  pos_extend: string;
-
-  constructor(
-    id: string,
-    word: string,
-    meaning: string,
-    example: string,
-    phonetic: string,
-    audio: string,
-    pos: string,
-    language: string,
-    collection: string,
-    pos_extend: string
-  ) {
-    this.id = id;
-    this.word = word;
-    this.meaning = meaning;
-    this.example = example;
-    this.phonetic = phonetic;
-    this.audio = audio;
-    this.pos = pos;
-    this.language = language;
-    this.collection = collection;
-    this.pos_extend = pos_extend;
-  }
-}
+import { Vocabulary } from 'src/app/models/collection';
 @Component({
   selector: 'app-list',
   templateUrl: './list.component.html',

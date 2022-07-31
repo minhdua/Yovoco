@@ -13,8 +13,12 @@ import { ToastModule } from 'primeng/toast';
 import { VocabularyListComponent } from './vocabulary/list/list.component';
 import { TableModule } from 'primeng/table';
 import { CollectionRoutingModule } from './collection-routing.module';
+import { VocabularyAddComponent } from './vocabulary/add/add.component';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { AngularFireModule } from '@angular/fire/compat';
+import { environment } from 'src/environments/environment';
 @NgModule({
-  declarations: [VocabularyListComponent],
+  declarations: [VocabularyListComponent, VocabularyAddComponent],
   imports: [
     CommonModule,
     RouterModule,
@@ -29,6 +33,8 @@ import { CollectionRoutingModule } from './collection-routing.module';
     ToastModule,
     TableModule,
     CollectionRoutingModule,
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFirestoreModule.enablePersistence(),
   ],
   exports: [],
   providers: [MessageService],

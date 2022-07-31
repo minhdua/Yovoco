@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "test-55635": {
+      "hosting": {
+        "yovoco": [
+          "test-55635"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "test-55635"
+  }
+}

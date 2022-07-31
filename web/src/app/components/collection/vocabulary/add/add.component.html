@@ -1,0 +1,50 @@
+<p-card title="Import Vocabulary">
+  <p-card header="Vocabulary" [style]="{ width: '100%', 'margin-bottom': '2em' }">
+    <div class="grid">
+      <div>
+        <label for="word" class="col">Word</label>
+        <input class="col" type="text" pInputText />
+      </div>
+      <div>
+        <label for="phonetic" class="col">Phonetic</label>
+        <input class="col" type="text" pInputText />
+      </div>
+      <div>
+        <label for="pos" class="col">POS</label>
+        <input class="col" type="text" pInputText />
+      </div>
+    </div>
+    <div class="grid">
+      <div>
+        <label for="meaning" class="col">Meaning</label>
+        <input class="col" type="text" pInputText />
+      </div>
+      <div>
+        <label for="phonetic" class="col">Phonetic</label>
+        <input class="col" type="text" pInputText />
+      </div>
+      <div>
+        <label for="pos" class="col">POS</label>
+        <input class="col" type="text" pInputText />
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button label="Add" icon="pi pi-check"></p-button>
+      <p-button
+        label="Refresh"
+        icon="pi pi-times"
+        styleClass="p-button-secondary"
+        [style]="{ 'margin-left': '.5em' }"></p-button>
+    </ng-template>
+  </p-card>
+  <p-card header="Collection" [style]="{ width: '100%', 'margin-bottom': '2em' }"> </p-card>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" icon="pi pi-check"></p-button>
+    <p-button
+      label="Save"
+      icon="pi pi-times"
+      styleClass="p-button-secondary"
+      [style]="{ 'margin-left': '.5em' }"></p-button>
+  </ng-template>
+</p-card>

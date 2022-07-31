@@ -114,10 +114,7 @@
                 "output": "./svg"
               }
             ],
-            "styles": [
-              "node_modules/primeflex/primeflex.css",
-              "src/styles.scss"
-            ],
+            "styles": ["node_modules/primeflex/primeflex.css", "src/styles.scss"],
             "scripts": []
           }
         },
@@ -143,6 +140,16 @@
             "production": {
               "browserTarget": "yovoco:build:production"
             }
+          }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "prerender": false,
+            "ssr": false,
+            "browserTarget": "yovoco:build:production",
+            "firebaseProject": "test-55635",
+            "firebaseHostingSite": "test-55635"
           }
         }
       }

@@ -44,3 +44,7 @@ Thumbs.db
 # Prettier
 .prettierrc
 .prettierignore
+# Firebase
+.firebase
+*-debug.log
+.runtimeconfig.json

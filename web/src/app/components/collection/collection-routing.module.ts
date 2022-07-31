@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { VocabularyAddComponent } from './vocabulary/add/add.component';
 import { VocabularyListComponent } from './vocabulary/list/list.component';
 const routes = [
   {
@@ -8,7 +9,7 @@ const routes = [
   },
   {
     path: 'vocabulary/add',
-    component: VocabularyListComponent,
+    component: VocabularyAddComponent,
   },
 ];
 

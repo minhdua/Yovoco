@@ -20,7 +20,6 @@ class VocabularyViewSet(CustomModelViewSet):
 	filterset_fields=(KEY_WORD, KEY_POS, KEY_LANGUAGE, KEY_COLLECTION)
  
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def search_vocabulary(request):
 	serializers = VocabularySerializer()
 	data = serializers.list(request)

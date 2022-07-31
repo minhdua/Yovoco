@@ -14,6 +14,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { TableModule } from 'primeng/table';
 import { CollectionModule } from './components/collection/collection.module';
+import { FirebaseAppModule, initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { environment } from '../environments/environment';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+import { provideDatabase, getDatabase } from '@angular/fire/database';
+import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideStorage, getStorage } from '@angular/fire/storage';
 @NgModule({
   declarations: [AppComponent, HomeComponent, HeaderComponent, NavigationBarComponent, MainComponent, LayoutComponent],
   imports: [
@@ -26,6 +32,12 @@ import { CollectionModule } from './components/collection/collection.module';
     BrowserAnimationsModule,
     PanelMenuModule,
     TableModule,
+    FirebaseAppModule,
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideAuth(() => getAuth()),
+    provideDatabase(() => getDatabase()),
+    provideFirestore(() => getFirestore()),
+    provideStorage(() => getStorage()),
   ],
   providers: [],
   bootstrap: [AppComponent],
