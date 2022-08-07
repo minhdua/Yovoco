@@ -1,7 +1,7 @@
 {
   "hosting": {
-    "target": "yovoco",
-    "public": "dist/yovoco",
+    "target": "web",
+    "public": "dist/web",
     "ignore": [
       "**/.*"
     ],

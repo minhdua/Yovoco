@@ -3,43 +3,30 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HomeComponent } from './components/home/home.component';
-import { HeaderComponent } from './components/header/header.component';
-import { NavigationBarComponent } from './components/navigation-bar/navigation-bar.component';
-import { MainComponent } from './components/main/main.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { LayoutComponent } from './components/layout/layout.component';
-import { AuthenticationModule } from './components/authentication/authentication.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PanelMenuModule } from 'primeng/panelmenu';
-import { TableModule } from 'primeng/table';
-import { CollectionModule } from './components/collection/collection.module';
-import { FirebaseAppModule, initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { environment } from '../environments/environment';
-import { provideAuth, getAuth } from '@angular/fire/auth';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { provideDatabase, getDatabase } from '@angular/fire/database';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
-import { provideStorage, getStorage } from '@angular/fire/storage';
+import { environment } from 'src/environments/environment';
+import { AboutComponent } from './yovoco/component/pages/about/about.component';
+import { HomeComponent } from './yovoco/component/pages/home/home.component';
+import { NotFoundComponent } from './yovoco/component/pages/not-found/not-found.component';
+import { FeatureModule } from './yovoco/component/feature/feature.module';
 @NgModule({
-  declarations: [AppComponent, HomeComponent, HeaderComponent, NavigationBarComponent, MainComponent, LayoutComponent],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    FormsModule,
-    ReactiveFormsModule,
-    AuthenticationModule,
-    CollectionModule,
-    BrowserAnimationsModule,
-    PanelMenuModule,
-    TableModule,
-    FirebaseAppModule,
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideAuth(() => getAuth()),
-    provideDatabase(() => getDatabase()),
-    provideFirestore(() => getFirestore()),
-    provideStorage(() => getStorage()),
-  ],
-  providers: [],
-  bootstrap: [AppComponent],
+    declarations: [
+        AppComponent,
+        // AboutComponent,
+        // HomeComponent,
+        // NotFoundComponent,
+    ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        provideFirebaseApp(() => initializeApp(environment.firebase)),
+        provideFirestore(() => getFirestore()),
+        provideDatabase(() => getDatabase()),
+        FeatureModule,
+    ],
+    providers: [],
+    bootstrap: [AppComponent],
 })
 export class AppModule {}

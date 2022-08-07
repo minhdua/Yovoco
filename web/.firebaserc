@@ -1,14 +1,14 @@
 {
   "targets": {
-    "test-55635": {
+    "test123-efa09": {
       "hosting": {
-        "yovoco": [
-          "test-55635"
+        "web": [
+          "test123-efa09"
         ]
       }
     }
   },
   "projects": {
-    "default": "test-55635"
+    "default": "test123-efa09"
   }
 }

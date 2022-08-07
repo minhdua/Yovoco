@@ -3,6 +3,7 @@
         "corsheaders",
         "djongo",
         "exemp",
+        "Firestore",
         "fullmatch",
         "maxlength",
         "mdpassw",

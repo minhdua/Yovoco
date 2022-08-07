@@ -1,5 +1,5 @@
 {
-  "name": "yovoco",
+  "name": "web",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -11,7 +11,6 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "~13.3.0",
-    "@angular/cdk": "^13.3.8",
     "@angular/common": "~13.3.0",
     "@angular/compiler": "~13.3.0",
     "@angular/core": "~13.3.0",
@@ -20,21 +19,16 @@
     "@angular/platform-browser": "~13.3.0",
     "@angular/platform-browser-dynamic": "~13.3.0",
     "@angular/router": "~13.3.0",
-    "firebase": "^9.8.4",
-    "ionicons": "^6.0.1",
-    "primeflex": "^3.2.1",
+    "bootstrap": "^5.2.0",
     "primeicons": "^5.0.0",
-    "primeng": "^13.4.1",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
-    "webpack": "^5.73.0",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~13.3.5",
-    "@angular/cli": "~13.3.5",
+    "@angular/cli": "^14.0.0-next.2",
     "@angular/compiler-cli": "~13.3.0",
-    "@ionic/angular-toolkit": "latest",
     "@types/jasmine": "~3.10.0",
     "@types/node": "^12.11.1",
     "jasmine-core": "~4.0.0",
