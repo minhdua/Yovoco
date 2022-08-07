@@ -14,9 +14,9 @@ import { FeatureModule } from './yovoco/component/feature/feature.module';
 @NgModule({
     declarations: [
         AppComponent,
-        // AboutComponent,
-        // HomeComponent,
-        // NotFoundComponent,
+        AboutComponent,
+        HomeComponent,
+        NotFoundComponent,
     ],
     imports: [
         BrowserModule,
