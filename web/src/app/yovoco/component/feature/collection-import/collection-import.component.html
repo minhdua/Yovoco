@@ -1,24 +1,346 @@
-<p-card
-    header="Advanced Card"
-    subheader="Card Subheader"
-    [style]="{ width: '360px' }"
-    styleClass="p-card-shadow">
-    <ng-template pTemplate="header">
-        <img alt="Card" src="assets/showcase/images/usercard.png" />
-    </ng-template>
-    <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed
-        consequuntur error repudiandae numquam deserunt quisquam repellat libero
-        asperiores earum nam nobis, culpa ratione quam perferendis esse,
-        cupiditate neque quas!
-    </p>
-    <ng-template pTemplate="footer">
-        <p-button label="Save" icon="pi pi-check"></p-button>
-        <p-button
-            label="Cancel"
-            icon="pi pi-times"
-            styleClass="p-button-secondary"
-            [style]="{ 'margin-left': '.5em' }" >
-        </p-button>
-    </ng-template>
-</p-card>
+<div class="content">
+	<p-card header="Collection Import" styleClass="p-card-shadow">
+		<div class="row">
+			<div class="col-2 form-group required">
+				<label class="control-label">Collection Name</label>
+			</div>
+			<div class="col-5">
+				<input type="text" pInputText class="form-control ml-2 w-full" [(ngModel)]="collectionSelectedName" readonly />
+			</div>
+			<div class="col-2">
+				<p-button
+					label="Choose"
+					(click)="showCollectionManagement()"
+					icon="pi pi-external-link"
+					styleClass="p-button-sm"
+					class="p-button-success">
+				</p-button>
+			</div>
+		</div>
+		<p-toolbar>
+			<div class="p-toolbar-group-left">
+				<p-button
+					label="New"
+					icon="pi pi-plus"
+					styleClass="p-button-sm button-header p-button-success ml-2"
+					(click)="showVocabularyNew()"></p-button>
+				<p-button label="Delete All" icon="pi pi-trash" styleClass="p-button-sm button-header p-button-danger ml-2"> </p-button>
+				<p-button label="Import" icon="pi pi-upload" styleClass="p-button-sm button-header p-button-warning ml-2"> </p-button>
+				<p-button label="Download Template" icon="pi pi-download" styleClass="p-button-sm button-header p-button-warning ml-2"> </p-button>
+			</div>
+		</p-toolbar>
+		<div>
+			<p-table
+				[columns]="vocabularyCols"
+				[value]="vocabularyList"
+				[scrollable]="true"
+				scrollHeight="calc(35vh)"
+				scrollDirection="both"
+				styleClass="p-datatable-gridlines"
+				responsiveLayout="scroll">
+				<ng-template pTemplate="header" let-columns>
+					<tr>
+						<th style="width: 50px">#</th>
+						<th style="width: 50px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+						<th *ngFor="let col of columns" [ngStyle]="{ width: col.width }">
+							{{ col.header }}
+						</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-index="rowIndex" let-rowData let-columns="columns">
+					<tr>
+						<td style="width: 50px">{{ index + 1 }}</td>
+						<td style="width: 50px"><p-tableCheckbox [value]="rowData"></p-tableCheckbox></td>
+						<td *ngFor="let col of columns" [ngStyle]="{ width: col.width, 'text-align': col.align }">
+							{{ rowData[col.field] }}
+						</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="{{ vocabularyCols.length }}" class="w-full">No records found.</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+		<p-footer>
+			<p-button label="Save" icon="pi pi-check" styleClass="p-button-sm p-button-success"></p-button>
+			<p-button label="Back" icon="pi pi-arrow-left" styleClass="p-button-sm p-button-danger" [style]="{ 'margin-left': '.5em' }"> </p-button>
+		</p-footer>
+	</p-card>
+</div>
+
+<p-dialog header="Collection Management" [(visible)]="displayCollectionModal" [modal]="true">
+	<p-messages [(value)]="msgs"></p-messages>
+	<div>
+		<form>
+			<p-treeTable
+				#tt
+				[columns]="collectionManagementCols"
+				[value]="collectionList"
+				styleClass="p-treetable-sm"
+				selectionMode="single"
+				[(selection)]="selectedNode"
+				[(contextMenuSelection)]="selectedNode"
+				[contextMenu]="cm"
+				[scrollable]="true"
+				scrollHeight="calc(35vh)"
+				scrollDirection="both"
+				dataKey="name">
+				<ng-template pTemplate="colgroup" let-columns>
+					<colgroup>
+						<ng-template ngFor let-col [ngForOf]="collectionManagementCols">
+							<col [ngStyle]="{ width: col.width }" />
+						</ng-template>
+					</colgroup>
+				</ng-template>
+				<ng-template pTemplate="header" let-columns>
+					<tr>
+						<th *ngFor="let col of collectionManagementCols" [ttSortableColumn]="col.field" ttResizableColumn>
+							{{ col.header }}
+							<p-treeTableSortIcon [field]="col.field"></p-treeTableSortIcon>
+						</th>
+					</tr>
+					<tr>
+						<th *ngFor="let col of collectionManagementCols">
+							<input
+								*ngIf="col.field === 'name' || col.field === 'note'"
+								pInputText
+								type="text"
+								class="form-control w-full"
+								(input)="tt.filter($any($event.target).value, col.field, col.filterMatchMode)" />
+						</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+					<tr *ngIf="!rowData.isEditing" [ttRow]="rowNode" [ttRow]="rowNode" [ttSelectableRow]="rowNode" [ttContextMenuRow]="rowNode">
+						<ng-template ngFor let-col [ngForOf]="collectionManagementCols" let-i="index">
+							<td [ngStyle]="{ 'text-align': col.align }">
+								<p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+								{{ rowData[col.field] }}
+							</td>
+						</ng-template>
+					</tr>
+					<tr *ngIf="rowData.isEditing" [ttRow]="rowNode" [ttContextMenuRow]="rowNode">
+						<td *ngFor="let col of collectionManagementCols; let i = index" ttEditableColumn [ngClass]="{ 'p-toggler-column': i === 0 }">
+							<p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+							<p-treeTableCellEditor>
+								<ng-template pTemplate="input">
+									<input
+										pInputText
+										class="form-control"
+										type="text"
+										[(ngModel)]="rowData[col.field]"
+										[ngModelOptions]="{ standalone: true }"
+										*ngIf="col.field === 'name' || col.field === 'note'" />
+									<span *ngIf="col.field !== 'name' && col.field !== 'note'">{{ rowData[col.field] }}</span>
+								</ng-template>
+								<ng-template pTemplate="output">{{ rowData[col.field] }}</ng-template>
+							</p-treeTableCellEditor>
+						</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td [attr.colspan]="collectionManagementCols.length">No records found.</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="summary">
+					<div class="button-action right-0">
+						<p-button
+							*ngIf="mode === 0 && collectionList.length === 0"
+							label="Add"
+							icon="pi pi-plus"
+							(click)="initCollection()"
+							styleClass="p-button-sm p-button-info"
+							[style]="{ 'margin-right': '1rem' }">
+						</p-button>
+
+						<p-button
+							*ngIf="mode === 0 && collectionList.length > 0"
+							label="Choose"
+							icon="pi pi-send"
+							(click)="chooseCollection()"
+							styleClass="p-button-sm p-button-info"
+							[style]="{ 'margin-right': '1rem' }"
+							[disabled]="selectedNode === null">
+						</p-button>
+
+						<p-button
+							*ngIf="mode === 1"
+							label="Cancel"
+							icon="pi pi-times"
+							(click)="onCancel()"
+							styleClass="p-button-sm p-button-danger"
+							[style]="{ 'margin-right': '1rem' }">
+						</p-button>
+
+						<p-button
+							*ngIf="mode === 1"
+							label="Save"
+							icon="pi pi-save"
+							(click)="onSaveCollection()"
+							styleClass="p-button-sm p-button-success"
+							[style]="{ 'margin-right': '1rem' }">
+						</p-button>
+					</div>
+				</ng-template>
+			</p-treeTable>
+		</form>
+	</div>
+</p-dialog>
+<p-dialog header="New Vocabulary" [(visible)]="displayVocabularyModal" [modal]="true" [style]="{ width: '1000px' }">
+	<p-messages [(value)]="msgs"></p-messages>
+	<form>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group required">
+						<label class="control-label">Word</label>
+					</div>
+					<div class="col-8">
+						<input
+							type="text"
+							[(ngModel)]="vocabularySelected.word"
+							[ngModelOptions]="{ standalone: true }"
+							pInputText
+							class="form-control w-full" />
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Phonetic</label>
+					</div>
+					<div class="col-8">
+						<input
+							type="text"
+							[(ngModel)]="vocabularySelected.phonetic"
+							[ngModelOptions]="{ standalone: true }"
+							pInputText
+							styleClass="form-control w-full" />
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Pos</label>
+					</div>
+					<div class="col-8">
+						<p-dropdown
+							styleClass="w-full"
+							[options]="partOfSpeech"
+							[(ngModel)]="vocabularySelected.pos"
+							[ngModelOptions]="{ standalone: true }"
+							optionLabel="label"
+							optionValue="value"
+							appendTo="body"></p-dropdown>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group required">
+						<label class="control-label">Meaning</label>
+					</div>
+					<div class="col-8">
+						<input
+							type="text"
+							[(ngModel)]="vocabularySelected.meaning"
+							[ngModelOptions]="{ standalone: true }"
+							pInputText
+							class="form-control w-full" />
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Definitions</label>
+					</div>
+					<div class="col-8">
+						<p-chips
+							inputStyleClass="w-full"
+							[(ngModel)]="vocabularySelected.definitions"
+							[ngModelOptions]="{ standalone: true }"></p-chips>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Examples</label>
+					</div>
+					<div class="col-8">
+						<p-chips inputStyleClass="w-full" [(ngModel)]="vocabularySelected.examples" [ngModelOptions]="{ standalone: true }"></p-chips>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Synomyms</label>
+					</div>
+					<div class="col-8">
+						<p-chips [(ngModel)]="vocabularySelected.synonyms" [ngModelOptions]="{ standalone: true }"></p-chips>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Antonyms</label>
+					</div>
+					<div class="col-8">
+						<p-chips [(ngModel)]="vocabularySelected.antonyms" [ngModelOptions]="{ standalone: true }"></p-chips>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="row">
+					<div class="col-4 form-group">
+						<label class="control-label">Note</label>
+					</div>
+					<div class="col-8">
+						<textarea
+							class="form-control w-full"
+							pInputTextarea
+							[(ngModel)]="vocabularySelected.note"
+							[ngModelOptions]="{ standalone: true }"
+							resizeable></textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+	<ng-template pTemplate="footer">
+		<div class="button-action right-0">
+			<p-button
+				label="Auto Fill"
+				icon="pi pi-bolt"
+				(click)="autoFill()"
+				styleClass="p-button-sm p-button-info"
+				[disabled]="vocabularySelected.word === undefined || vocabularySelected.word === ''">
+			</p-button>
+			<p-button
+				label="Apply"
+				icon="pi pi-check"
+				(click)="onApply()"
+				styleClass="p-button-sm p-button-success"
+				[disabled]="
+					vocabularySelected.word === undefined ||
+					vocabularySelected.word === '' ||
+					vocabularySelected.meaning === undefined ||
+					vocabularySelected.meaning === ''
+				">
+			</p-button>
+		</div>
+	</ng-template>
+</p-dialog>
+<p-contextMenu #cm [model]="tempMenuItems" (onShow)="onContextMenu()" (onHide)="onContextMenuHide()"></p-contextMenu>

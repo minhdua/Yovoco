@@ -1,22 +1,24 @@
 {
-    "cSpell.words": [
-        "corsheaders",
-        "djongo",
-        "exemp",
-        "Firestore",
-        "fullmatch",
-        "maxlength",
-        "mdpassw",
-        "minhdua",
-        "myenglish",
-        "NOSQL",
-        "signin",
-        "simplejwt",
-        "yovoco"
-    ],
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.python"
-    }
+	"cSpell.words": [
+		"corsheaders",
+		"djongo",
+		"exemp",
+		"Firestore",
+		"flattern",
+		"fullmatch",
+		"maxlength",
+		"mdpassw",
+		"minhdua",
+		"myenglish",
+		"NOSQL",
+		"signin",
+		"simplejwt",
+		"yovoco"
+	],
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": true,
+	"editor.experimental.stickyScroll.enabled": true,
+	"[python]": {
+		"editor.defaultFormatter": "ms-python.python"
+	}
 }

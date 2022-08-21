@@ -1,1 +1,33 @@
 /* You can add global styles to this file, and also import other style files */
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f5f5f5;
+}
+.content {
+    margin-top: 16px;
+}
+
+:host ::ng-deep .p-button {
+    height:2.5rem;
+}
+
+:host ::ng-deep .p-card {
+    margin-top: 16px;
+}
+
+:host ::ng-deep .button-header {
+    height:2rem;
+  }
+
+.form-group.required label.control-label:after {
+    content: "*";
+    color: red;
+    margin-left: 10px;
+}
+
+
+
+
+

@@ -1,0 +1,98 @@
+{
+	"data": [
+		{
+			"data": {
+				"name": "Collection1",
+				"size": "3 topics",
+				"type": "Collection",
+				"note": "This is a collection1 of topics",
+				"createdAt": "01/01/2018",
+				"modifiedAt": "01/01/2018"
+			},
+			"children": [
+				{
+					"data": {
+						"name": "Topic1",
+						"size": "10 vocabularies",
+						"type": "Topic",
+						"note": "This is a topic1 of vocabularies",
+						"createdAt": "01/01/2018",
+						"modifiedAt": "01/01/2018"
+					}
+				},
+				{
+					"data": {
+						"name": "Topic2",
+						"size": "20 vocabularies",
+						"type": "Topic",
+						"note": "This is a topic2 of vocabularies",
+						"createdAt": "01/01/2018",
+						"modifiedAt": "01/01/2018"
+					}
+				},
+				{
+					"data": {
+						"name": "Topic3",
+						"size": "30 vocabularies",
+						"type": "Topic",
+						"note": "This is a topic3 of vocabularies",
+						"createdAt": "01/01/2018",
+						"modifiedAt": "01/01/2018"
+					}
+				}
+			]
+		},
+		{
+			"data": {
+				"name": "Collection2",
+				"size": "0 topics",
+				"type": "Collection",
+				"note": "This is a collection2 of topics",
+				"createdAt": "01/01/2018",
+				"modifiedAt": "01/01/2018"
+			}
+		},
+		{
+			"data": {
+				"name": "Collection3",
+				"size": "3 topics",
+				"type": "Collection",
+				"note": "This is a collection3 of topics",
+				"createdAt": "01/01/2018",
+				"modifiedAt": "01/01/2018"
+			},
+			"children": [
+				{
+					"data": {
+						"name": "Topic1",
+						"size": "10 vocabularies",
+						"type": "Topic",
+						"note": "This is a topic1 of vocabularies",
+						"createdAt": "01/01/2018",
+						"modifiedAt": "01/01/2018"
+					}
+				},
+				{
+					"data": {
+						"name": "Topic2",
+						"size": "20 vocabularies",
+						"type": "Topic",
+						"note": "This is a topic2 of vocabularies",
+						"createdAt": "01/01/2018",
+						"modifiedAt": "01/01/2018"
+					}
+				},
+				{
+					"data": {
+						"name": "Topic3",
+						"size": "30 vocabularies",
+						"type": "Topic",
+						"note": "This is a topic3 of vocabularies",
+						"createdAt": "01/01/2018",
+						"modifiedAt": "01/01/2018"
+					}
+				}
+			]
+		}
+	]
+}
